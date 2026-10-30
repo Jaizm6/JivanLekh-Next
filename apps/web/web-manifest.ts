@@ -20,10 +20,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import { ManifestOptions } from "vite-plugin-pwa";
 
 export const WEB_MANIFEST: Partial<ManifestOptions> = {
-  name: "Notesnook",
+  name: "JivanLekh",
   description:
-    "A fully open source & end-to-end encrypted note taking alternative to Evernote.",
-  short_name: "Notesnook",
+    "A thoughtful space to capture notes, organise ideas and keep your work together.",
+  short_name: "JivanLekh",
   shortcuts: [
     {
       name: "New note",
@@ -31,9 +31,9 @@ export const WEB_MANIFEST: Partial<ManifestOptions> = {
       description: "Create a new note",
       icons: [
         {
-          src: "/android-chrome-192x192.png",
-          sizes: "192x192",
-          type: "image/png"
+          src: "/favicon.svg",
+          sizes: "any",
+          type: "image/svg+xml"
         }
       ]
     },
@@ -43,34 +43,34 @@ export const WEB_MANIFEST: Partial<ManifestOptions> = {
       description: "Create a new notebook",
       icons: [
         {
-          src: "/android-chrome-192x192.png",
-          sizes: "192x192",
-          type: "image/png"
+          src: "/favicon.svg",
+          sizes: "any",
+          type: "image/svg+xml"
         }
       ]
     }
   ],
   icons: [
     {
-      src: "/android-chrome-192x192.png",
-      sizes: "192x192",
-      type: "image/png"
+      src: "/favicon.svg",
+      sizes: "any",
+      type: "image/svg+xml"
     },
     {
-      src: "/android-chrome-512x512.png",
-      sizes: "512x512",
-      type: "image/png"
+      src: "/favicon.svg",
+      sizes: "any",
+      type: "image/svg+xml"
     },
     {
-      src: "/android-chrome-maskable-192x192.png",
-      sizes: "192x192",
-      type: "image/png",
+      src: "/favicon.svg",
+      sizes: "any",
+      type: "image/svg+xml",
       purpose: "maskable"
     },
     {
-      src: "/android-chrome-maskable-512x512.png",
-      sizes: "512x512",
-      type: "image/png",
+      src: "/favicon.svg",
+      sizes: "any",
+      type: "image/svg+xml",
       purpose: "maskable"
     }
   ],
@@ -111,21 +111,9 @@ export const WEB_MANIFEST: Partial<ManifestOptions> = {
       type: "image/jpeg"
     }
   ],
-  related_applications: [
-    {
-      platform: "play",
-      url: "https://play.google.com/store/apps/details?id=com.streetwriters.notesnook",
-      id: "com.streetwriters.notesnook"
-    },
-    {
-      platform: "itunes",
-      url: "https://apps.apple.com/us/app/notesnook-private-notes-app/id1544027013"
-    }
-  ],
-  prefer_related_applications: true,
   orientation: "any",
   start_url: ".",
-  theme_color: "#01c352",
+  theme_color: "#C65A17",
   background_color: "#ffffff",
   display: "standalone",
   categories: ["productivity", "lifestyle", "education", "books"]

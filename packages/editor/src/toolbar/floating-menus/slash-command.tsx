@@ -50,6 +50,11 @@ export function SlashCommandFloatingMenu({ editor }: FloatingMenuProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const { open, close } = usePopupManager({ id: "slash-commands", group: "slash-commands" });
 
+  useEffect(() => {
+    if (menuState) open();
+    else close();
+  }, [!!menuState, open, close]);
+
   const commands = useMemo<SlashCommand[]>(
     () => [
       {
