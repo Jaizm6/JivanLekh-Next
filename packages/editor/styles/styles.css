@@ -777,6 +777,11 @@ p > *::selection {
   opacity: 0.8;
 }
 
+/* Visually complete checked checklist items without affecting the checkbox. */
+.simple-checklist > li.checked > p {
+  text-decoration: line-through;
+}
+
 
 /* Callout */
 .ProseMirror div.callout {
