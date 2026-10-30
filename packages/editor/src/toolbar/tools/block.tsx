@@ -326,7 +326,7 @@ const checklist = (editor: Editor): MenuItem => ({
   key: "checklist",
   type: "button",
   title: strings.checklist(),
-  icon: Icons.checkbox,
+  icon: Icons.checklist,
   isChecked: editor.isActive("checkList"),
   onClick: () => editor.chain().focus().toggleCheckList().run()
 });

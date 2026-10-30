@@ -26,7 +26,7 @@ export const ImporterSettings: SettingsGroup[] = [
     key: "importer",
     section: "importer",
     get header() {
-      return strings.notesnookImporter();
+      return "Import from Notesnook";
     },
     settings: [
       {

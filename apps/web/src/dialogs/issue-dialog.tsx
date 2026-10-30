@@ -122,20 +122,13 @@ export const IssueDialog = DialogManager.register(function IssueDialog(
         >
           {strings.issueNotice[0]()}{" "}
           <Link
-            href="https://github.com/streetwriters/notesnook/issues"
-            title="github.com/streetwriters/notesnook/issues"
+            href="https://github.com/Jaizm6/JivanLekh-Next/issues"
+            title="github.com/Jaizm6/JivanLekh-Next/issues"
             target="_blank"
           >
-            github.com/streetwriters/notesnook/issues
+            github.com/Jaizm6/JivanLekh-Next/issues
           </Link>
           {strings.issueNotice[1]()}{" "}
-          <Link
-            href="https://discord.gg/zQBK97EE22"
-            title={strings.issueNotice[2]()}
-            target="_blank"
-          >
-            {strings.issueNotice[2]()}
-          </Link>
           /
         </Text>
         <Text variant="subBody" mt={1}>

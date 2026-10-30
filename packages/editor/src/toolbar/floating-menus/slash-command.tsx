@@ -49,11 +49,12 @@ export function SlashCommandFloatingMenu({ editor }: FloatingMenuProps) {
   const [menuState, setMenuState] = useState<SlashMenuState | null>(null);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const { open, close } = usePopupManager({ id: "slash-commands", group: "slash-commands" });
+  const isMenuOpen = Boolean(menuState);
 
   useEffect(() => {
-    if (menuState) open();
+    if (isMenuOpen) open();
     else close();
-  }, [!!menuState, open, close]);
+  }, [isMenuOpen, open, close]);
 
   const commands = useMemo<SlashCommand[]>(
     () => [
@@ -93,7 +94,7 @@ export function SlashCommandFloatingMenu({ editor }: FloatingMenuProps) {
       },
       {
         id: "table", title: "Table", description: "Insert a table with a header row",
-        aliases: ["grid", "database", "rows", "tbl"], icon: Icons.table, color: COMMAND_COLORS.table,
+        aliases: ["grid", "database", "db", "rows", "tbl", "expense", "calc", "sum"], icon: Icons.table, color: COMMAND_COLORS.table,
         run: (editor, range) => editor.chain().focus().deleteRange(range).insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
       },
       {
