@@ -21,6 +21,8 @@ import { isiOS } from "../../utils/platform.js";
 import { startItemDrag } from "../drag-drop/index.js";
 import { DesktopOnly } from "../../components/responsive/index.js";
 import TaskItem from "@tiptap/extension-task-item";
+import TaskList from "@tiptap/extension-task-list";
+import type { Node as ProseMirrorNode } from "@tiptap/pm/model";
 import { strings } from "@notesnook/intl";
 import { formatExpenseAmount, getTaskItemText, parseExpenseAmount } from "../task-list/expense.js";
 
@@ -31,10 +33,23 @@ export function TaskItemComponent(
   const {
     checked,
     readonly,
-    expenseCurrencySymbol = "₹",
-    expenseShowCurrency = true
+    expenseCurrencySymbol: itemCurrencySymbol = "₹",
+    expenseShowCurrency: itemShowCurrency = true
   } = props.node.attrs;
   const isMobile = useIsMobile();
+  const resolvedPosition = editor.state.doc.resolve(getPos());
+  let rootTaskList: ProseMirrorNode | null = null;
+  for (let depth = 1; depth <= resolvedPosition.depth; depth++) {
+    const ancestor = resolvedPosition.node(depth);
+    if (ancestor.type.name === TaskList.name) {
+      rootTaskList = ancestor;
+      break;
+    }
+  }
+  const expenseCurrencySymbol =
+    rootTaskList?.attrs.currencySymbol ?? itemCurrencySymbol;
+  const expenseShowCurrency =
+    rootTaskList?.attrs.showCurrency ?? itemShowCurrency;
   const amount = useMemo(
     () => parseExpenseAmount(getTaskItemText(node)),
     [node, node.textContent]
