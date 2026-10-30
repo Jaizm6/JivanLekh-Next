@@ -32,13 +32,13 @@ type SlashCommand = {
 };
 
 const COMMAND_COLORS = {
-  heading: "#C65A17",
-  list: "#278A59",
-  table: "#7957B5",
-  text: "#168B91",
-  code: "#7957B5",
-  media: "#287FAF",
-  divider: "#6B7280"
+  heading: "var(--jl-icon-heading)",
+  list: "var(--jl-icon-list)",
+  table: "var(--jl-icon-code)",
+  text: "var(--jl-icon-link)",
+  code: "var(--jl-icon-code)",
+  media: "var(--jl-icon-media)",
+  divider: "var(--jl-icon-muted)"
 };
 
 export function SlashCommandFloatingMenu({ editor }: FloatingMenuProps) {

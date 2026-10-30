@@ -1,3 +1,28 @@
+/* JivanLekh toolbar and contextual-menu icon palette. */
+:root {
+  --jl-icon-heading: #C65A17;
+  --jl-icon-list: #278A59;
+  --jl-icon-link: #168B91;
+  --jl-icon-code: #7957B5;
+  --jl-icon-media: #287FAF;
+  --jl-icon-highlight: #B7791F;
+  --jl-icon-alignment: #4B78A8;
+  --jl-icon-muted: #6B7280;
+  --jl-icon-danger: #C64F4F;
+}
+
+html[data-theme="dark"] {
+  --jl-icon-heading: #F2A45A;
+  --jl-icon-list: #65CF93;
+  --jl-icon-link: #65D0CB;
+  --jl-icon-code: #B49AF2;
+  --jl-icon-media: #7CC4F5;
+  --jl-icon-highlight: #F1C66B;
+  --jl-icon-alignment: #8AB9ED;
+  --jl-icon-muted: #B1B8C2;
+  --jl-icon-danger: #F28E8E;
+}
+
 @keyframes fadeIn {
   0% {
     opacity: 0;

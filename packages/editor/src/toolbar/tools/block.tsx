@@ -400,9 +400,9 @@ const uploadImageFromURL = (editor: Editor): MenuItem => ({
 
 
 const BLOCK_MENU_ICON_COLORS: Record<string, string> = {
-  tasklist: "#278A59", checklist: "#278A59", outlinelist: "#4B78A8",
-  hr: "#6B7280", codeblock: "#7957B5", math: "#7957B5", callout: "#C17A21",
-  blockquote: "#168B91", image: "#287FAF", attachment: "#287FAF", embed: "#287FAF", table: "#7957B5"
+  tasklist: "var(--jl-icon-list)", checklist: "var(--jl-icon-list)", outlinelist: "var(--jl-icon-alignment)",
+  hr: "var(--jl-icon-muted)", codeblock: "var(--jl-icon-code)", math: "var(--jl-icon-code)", callout: "var(--jl-icon-heading)",
+  blockquote: "var(--jl-icon-link)", image: "var(--jl-icon-media)", attachment: "var(--jl-icon-media)", embed: "var(--jl-icon-media)", table: "var(--jl-icon-code)"
 };
 
 function colorizeMenuItems(items: MenuItem[]): MenuItem[] {

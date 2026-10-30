@@ -28,16 +28,16 @@ import { Icon } from "@notesnook/ui";
 import { useIsMobile } from "../stores/toolbar-store.js";
 
 const TOOL_ICON_COLORS: Record<string, string> = {
-  heading: "#C65A17", fontFamily: "#C65A17", fontSize: "#C65A17",
-  checklist: "#278A59", checkbox: "#278A59", bulletList: "#278A59", numberedList: "#278A59",
-  noteLink: "#168B91", link: "#168B91", linkEdit: "#168B91", linkRemove: "#C65A5A",
-  linkSettings: "#168B91", openLink: "#168B91", copyLink: "#168B91",
-  code: "#7957B5", codeRemove: "#7957B5", math: "#7957B5", table: "#7957B5",
-  tableSettings: "#7957B5", rowProperties: "#7957B5", columnProperties: "#7957B5", cellProperties: "#7957B5",
-  image: "#287FAF", imageSettings: "#287FAF", attachment: "#287FAF", embed: "#287FAF", webClip: "#287FAF",
-  highlight: "#C17A21", textColor: "#C17A21", backgroundColor: "#C17A21",
-  alignCenter: "#4B78A8", alignLeft: "#4B78A8", alignRight: "#4B78A8", alignJustify: "#4B78A8", ltr: "#4B78A8", rtl: "#4B78A8",
-  formatClear: "#6B7280", delete: "#C64F4F", clear: "#C64F4F"
+  heading: "var(--jl-icon-heading)", fontFamily: "var(--jl-icon-heading)", fontSize: "var(--jl-icon-heading)",
+  checklist: "var(--jl-icon-list)", checkbox: "var(--jl-icon-list)", bulletList: "var(--jl-icon-list)", numberedList: "var(--jl-icon-list)",
+  noteLink: "var(--jl-icon-link)", link: "var(--jl-icon-link)", linkEdit: "var(--jl-icon-link)", linkRemove: "var(--jl-icon-danger)",
+  linkSettings: "var(--jl-icon-link)", openLink: "var(--jl-icon-link)", copyLink: "var(--jl-icon-link)",
+  code: "var(--jl-icon-code)", codeRemove: "var(--jl-icon-code)", math: "var(--jl-icon-code)", table: "var(--jl-icon-code)",
+  tableSettings: "var(--jl-icon-code)", rowProperties: "var(--jl-icon-code)", columnProperties: "var(--jl-icon-code)", cellProperties: "var(--jl-icon-code)",
+  image: "var(--jl-icon-media)", imageSettings: "var(--jl-icon-media)", attachment: "var(--jl-icon-media)", embed: "var(--jl-icon-media)", webClip: "var(--jl-icon-media)",
+  highlight: "var(--jl-icon-highlight)", textColor: "var(--jl-icon-highlight)", backgroundColor: "var(--jl-icon-highlight)",
+  alignCenter: "var(--jl-icon-alignment)", alignLeft: "var(--jl-icon-alignment)", alignRight: "var(--jl-icon-alignment)", alignJustify: "var(--jl-icon-alignment)", ltr: "var(--jl-icon-alignment)", rtl: "var(--jl-icon-alignment)",
+  formatClear: "var(--jl-icon-muted)", delete: "var(--jl-icon-danger)", clear: "var(--jl-icon-danger)"
 };
 
 export type ToolButtonProps = ButtonProps & {

@@ -148,7 +148,7 @@ function RouteWrapper(props: {
         </svg>
         <Text variant="heading" sx={{ fontSize: 22, fontWeight: 700, mb: 2 }}>
           <span style={{ color: "var(--heading)" }}>Jivan</span>
-          <span style={{ color: "#C65A17" }}>Lekh</span>
+          <span style={{ color: "var(--jl-icon-heading)" }}>Lekh</span>
         </Text>
         <Text variant="body" sx={{ fontFamily: "monospace" }}>
           {isMigrating
