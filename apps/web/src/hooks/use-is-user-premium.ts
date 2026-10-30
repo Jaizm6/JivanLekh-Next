@@ -18,10 +18,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { SubscriptionPlan, SubscriptionStatus, User } from "@notesnook/core";
+import { isJivanLekhAdmin } from "@notesnook/common";
 import { useStore as useUserStore } from "../stores/user-store";
 
 export function isActiveSubscription(user?: User) {
   user = user || useUserStore.getState().user;
+  if (isJivanLekhAdmin(user?.email)) return true;
   if (!user) return false;
 
   const { status } = user?.subscription || {};
@@ -32,6 +34,7 @@ export function isActiveSubscription(user?: User) {
 }
 export function isUserSubscribed(user?: User) {
   user = user || useUserStore.getState().user;
+  if (isJivanLekhAdmin(user?.email)) return true;
   if (!user) return false;
 
   const { expiry, plan, status } = user?.subscription || {};

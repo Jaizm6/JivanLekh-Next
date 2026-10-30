@@ -146,6 +146,7 @@ const callout = (editor: Editor): MenuItem => ({
   type: "button",
   title: strings.callout(),
   icon: Icons.callout,
+  premium: true,
   menu: {
     title: strings.callout(),
     items: [
@@ -214,6 +215,7 @@ const table = (editor: Editor): MenuItem => ({
         type: "button",
         title: strings.importCsv(),
         icon: Icons.csv,
+        premium: true,
         onClick: async () => {
           if (!hasPermission("importCsvToTable")) return;
 
@@ -336,6 +338,7 @@ const tasklist = (editor: Editor): MenuItem => ({
   type: "button",
   title: strings.taskList(),
   icon: Icons.checkbox,
+  premium: true,
   isChecked: editor.isActive("taskList"),
   onClick: () => editor.chain().focus().toggleTaskList().run(),
   modifier: keybindings.toggleTaskList.keys
@@ -346,6 +349,7 @@ const outlinelist = (editor: Editor): MenuItem => ({
   type: "button",
   title: strings.outlineList(),
   icon: Icons.outlineList,
+  premium: true,
   isChecked: editor.isActive("outlineList"),
   onClick: () => editor.chain().focus().toggleOutlineList().run(),
   modifier: keybindings.toggleOutlineList.keys

@@ -33,6 +33,7 @@ export type ToolDefinition = {
   icon: IconNames;
   title: string;
   conditional?: boolean;
+  premium?: boolean;
   description?: string;
 };
 

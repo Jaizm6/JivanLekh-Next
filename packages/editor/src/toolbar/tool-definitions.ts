@@ -115,7 +115,8 @@ const tools = (): Record<ToolId, ToolDefinition> => ({
   },
   taskList: {
     icon: "checkbox",
-    title: strings.taskList()
+    title: strings.taskList(),
+    premium: true
   },
   fontFamily: {
     icon: "fontFamily",
@@ -358,7 +359,8 @@ const tools = (): Record<ToolId, ToolDefinition> => ({
   exportToCSV: {
     icon: "csv",
     title: strings.exportCsv(),
-    conditional: true
+    conditional: true,
+    premium: true
   }
 });
 

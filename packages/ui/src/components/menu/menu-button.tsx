@@ -105,16 +105,27 @@ export function MenuButton(props: MenuButtonProps) {
             }}
           >
             {title}
+            {premium ? (
+              <Icon
+                path={mdiCrown}
+                size={10}
+                color="#e8b923"
+                as="span"
+                sx={{
+                  display: "inline-flex",
+                  verticalAlign: "super",
+                  ml: "3px",
+                  transform: "translateY(-3px)"
+                }}
+              />
+            ) : null}
           </Text>
         </Flex>
-        {isChecked || menu || modifier || premium ? (
+        {isChecked || menu || modifier ? (
           <Flex
             sx={{ ml: 4, flexShrink: 0, gap: 1 }}
             data-test-id={`toggle-state-${isChecked ? "on" : "off"}`}
           >
-            {premium && (
-              <Icon path={mdiCrown} size={"small"} color={"#e8b923"} />
-            )}
             {modifier && (
               <Text
                 as="span"

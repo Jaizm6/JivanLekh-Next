@@ -21,6 +21,16 @@ import { SubscriptionPlan } from "@notesnook/core";
 import { strings } from "@notesnook/intl";
 import { database as db } from "../database.js";
 
+// Personal-fork administrator allow-list. Add a third address here when assigned.
+const JIVANLEKH_ADMIN_EMAILS = new Set([
+  "jaiprakashm6.jm@gmail.com",
+  "jaiprakashog@gmail.com"
+]);
+
+export function isJivanLekhAdmin(email?: string | null): boolean {
+  return !!email && JIVANLEKH_ADMIN_EMAILS.has(email.trim().toLowerCase());
+}
+
 type CaptionValue = ("infinity" | (string & {})) | boolean | number;
 type Limit<TCaption extends CaptionValue = CaptionValue> = {
   caption: TCaption;
@@ -650,8 +660,11 @@ export async function areFeaturesAvailable<TIds extends FeatureId[]>(
 
 async function getUserPlan() {
   const user = await db.user.getUser();
-  const plan = user?.subscription?.plan || SubscriptionPlan.FREE;
-  return plan;
+
+  // Admin accounts receive the highest standard JivanLekh feature tier.
+  if (isJivanLekhAdmin(user?.email)) return SubscriptionPlan.BELIEVER;
+
+  return user?.subscription?.plan || SubscriptionPlan.FREE;
 }
 
 async function availableOn(id: FeatureId, value?: number) {
