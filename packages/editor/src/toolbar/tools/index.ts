@@ -40,7 +40,8 @@ import {
   BulletList,
   Outdent,
   Indent,
-  CheckList
+  CheckList,
+  TaskList
 } from "./lists.js";
 import { TextDirection } from "./text-direction.js";
 import { Highlight, TextColor } from "./colors.js";
@@ -126,6 +127,7 @@ const tools = {
   numberedList: NumberedList,
   bulletList: BulletList,
   checkList: CheckList,
+  taskList: TaskList,
   fontSize: FontSize,
   fontFamily: FontFamily,
   headings: Headings,

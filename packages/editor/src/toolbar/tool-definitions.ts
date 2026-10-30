@@ -113,6 +113,10 @@ const tools = (): Record<ToolId, ToolDefinition> => ({
     icon: "checklist",
     title: strings.checklist()
   },
+  taskList: {
+    icon: "checkbox",
+    title: strings.taskList()
+  },
   fontFamily: {
     icon: "fontFamily",
     title: strings.fontFamily()
@@ -424,7 +428,7 @@ const defaultPresets: Record<"default" | "minimal", ToolbarDefinition> = {
     ],
     ["fontSize"],
     ["headings", "fontFamily"],
-    ["checkList", "numberedList", "bulletList"],
+    ["checkList", "taskList", "numberedList", "bulletList"],
     ["addLink", "addInternalLink"],
     ["alignment", "textDirection"],
     ["clearformatting"]

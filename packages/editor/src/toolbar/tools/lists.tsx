@@ -192,6 +192,19 @@ export function CheckList(props: ToolProps) {
   );
 }
 
+export function TaskList(props: ToolProps) {
+  const { editor } = props;
+
+  return (
+    <ToolButton
+      icon={props.icon}
+      title={props.title}
+      toggled={editor.isActive("taskList")}
+      onClick={() => editor.chain().focus().toggleTaskList().run()}
+    />
+  );
+}
+
 export function Indent(props: ToolProps) {
   const { editor } = props;
   const isBottom = useToolbarLocation() === "bottom";

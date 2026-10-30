@@ -27,6 +27,19 @@ import { Button } from "../../components/button.js";
 import { Icon } from "@notesnook/ui";
 import { useIsMobile } from "../stores/toolbar-store.js";
 
+const TOOL_ICON_COLORS: Record<string, string> = {
+  heading: "#C65A17", fontFamily: "#C65A17", fontSize: "#C65A17",
+  checklist: "#278A59", checkbox: "#278A59", bulletList: "#278A59", numberedList: "#278A59",
+  noteLink: "#168B91", link: "#168B91", linkEdit: "#168B91", linkRemove: "#C65A5A",
+  linkSettings: "#168B91", openLink: "#168B91", copyLink: "#168B91",
+  code: "#7957B5", codeRemove: "#7957B5", math: "#7957B5", table: "#7957B5",
+  tableSettings: "#7957B5", rowProperties: "#7957B5", columnProperties: "#7957B5", cellProperties: "#7957B5",
+  image: "#287FAF", imageSettings: "#287FAF", attachment: "#287FAF", embed: "#287FAF", webClip: "#287FAF",
+  highlight: "#C17A21", textColor: "#C17A21", backgroundColor: "#C17A21",
+  alignCenter: "#4B78A8", alignLeft: "#4B78A8", alignRight: "#4B78A8", alignJustify: "#4B78A8", ltr: "#4B78A8", rtl: "#4B78A8",
+  formatClear: "#6B7280", delete: "#C64F4F", clear: "#C64F4F"
+};
+
 export type ToolButtonProps = ButtonProps & {
   icon: IconNames;
   iconColor?: SchemeColors;
@@ -83,7 +96,7 @@ export const ToolButton = React.memo(
       >
         <Icon
           path={Icons[icon]}
-          color={iconColor || (toggled ? "icon-selected" : "icon")}
+          color={toggled ? "icon-selected" : iconColor || TOOL_ICON_COLORS[icon] || "#4B83B8"}
           size={iconSize || (variant === "small" ? "medium" : "big")}
         />
       </Button>

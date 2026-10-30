@@ -41,8 +41,9 @@ export function InsertBlock(props: ToolProps) {
   const isMobile = useIsMobile();
 
   const menuItems = useMemo(() => {
-    return [
+    const items = [
       tasklist(editor),
+      checklist(editor),
       outlinelist(editor),
       horizontalRule(editor),
       codeblock(editor),
@@ -54,6 +55,7 @@ export function InsertBlock(props: ToolProps) {
       isMobile ? embedMobile(editor) : embedDesktop(editor),
       table(editor)
     ];
+    return colorizeMenuItems(items);
   }, [editor, isMobile]);
 
   return (
@@ -320,6 +322,15 @@ const attachment = (editor: Editor): MenuItem => ({
   modifier: keybindings.addAttachment.keys
 });
 
+const checklist = (editor: Editor): MenuItem => ({
+  key: "checklist",
+  type: "button",
+  title: strings.checklist(),
+  icon: Icons.checkbox,
+  isChecked: editor.isActive("checkList"),
+  onClick: () => editor.chain().focus().toggleCheckList().run()
+});
+
 const tasklist = (editor: Editor): MenuItem => ({
   key: "tasklist",
   type: "button",
@@ -386,3 +397,22 @@ const uploadImageFromURL = (editor: Editor): MenuItem => ({
     });
   }
 });
+
+
+const BLOCK_MENU_ICON_COLORS: Record<string, string> = {
+  tasklist: "#278A59", checklist: "#278A59", outlinelist: "#4B78A8",
+  hr: "#6B7280", codeblock: "#7957B5", math: "#7957B5", callout: "#C17A21",
+  blockquote: "#168B91", image: "#287FAF", attachment: "#287FAF", embed: "#287FAF", table: "#7957B5"
+};
+
+function colorizeMenuItems(items: MenuItem[]): MenuItem[] {
+  return items.map((item) => {
+    if (item.type !== "button") return item;
+    const color = BLOCK_MENU_ICON_COLORS[item.key] || "#4B83B8";
+    return {
+      ...item,
+      styles: { ...item.styles, icon: { ...item.styles?.icon, color } },
+      ...(item.menu ? { menu: { ...item.menu, items: colorizeMenuItems(item.menu.items) } } : {})
+    };
+  });
+}

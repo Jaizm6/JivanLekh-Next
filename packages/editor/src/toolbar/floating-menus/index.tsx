@@ -20,12 +20,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import { DesktopOnly } from "../../components/responsive/index.js";
 import { HoverPopupHandler } from "./hover-popup/index.js";
 import { SearchReplaceFloatingMenu } from "./search-replace.js";
+import { SlashCommandFloatingMenu } from "./slash-command.js";
 import { FloatingMenuProps } from "./types.js";
 
 export function EditorFloatingMenus(props: FloatingMenuProps) {
   return (
     <>
       <SearchReplaceFloatingMenu {...props} />
+      <SlashCommandFloatingMenu {...props} />
 
       <DesktopOnly>
         <HoverPopupHandler {...props} />
