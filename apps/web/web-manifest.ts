@@ -30,10 +30,48 @@ export const WEB_MANIFEST: Partial<ManifestOptions> = {
       url: "/#/notes/create",
       description: "Create a new note",
       icons: [
+        {
+          src: "/favicon.svg",
+          sizes: "any",
+          type: "image/svg+xml"
+        }
+      ]
+    },
+    {
+      name: "New notebook",
+      url: "/#/notebooks/create",
+      description: "Create a new notebook",
+      icons: [
+        {
+          src: "/favicon.svg",
+          sizes: "any",
+          type: "image/svg+xml"
+        }
+      ]
+    }
+  ],
+  icons: [
     {
       src: "/favicon.svg",
       sizes: "any",
       type: "image/svg+xml"
+    },
+    {
+      src: "/favicon.svg",
+      sizes: "any",
+      type: "image/svg+xml"
+    },
+    {
+      src: "/favicon.svg",
+      sizes: "any",
+      type: "image/svg+xml",
+      purpose: "maskable"
+    },
+    {
+      src: "/favicon.svg",
+      sizes: "any",
+      type: "image/svg+xml",
+      purpose: "maskable"
     }
   ],
   screenshots: [
