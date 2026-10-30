@@ -141,17 +141,7 @@ export function getSettingsGroups(): SettingSection[] {
       sections: [
         {
           id: "subscription-status",
-          useHook: () => useUserStore((state) => state.user),
-          hidden: (current) => {
-            const user = current as User;
-            return (
-              !user ||
-              !user.subscription ||
-              user.subscription.provider === undefined ||
-              !strings.subscriptionProviderInfo[user?.subscription?.provider] ||
-              user.subscription?.plan === SubscriptionPlan.FREE
-            );
-          },
+          hidden: () => true,
           name: (current) => {
             const user = (current as User) || useUserStore.getState().user;
             return (
@@ -237,9 +227,7 @@ export function getSettingsGroups(): SettingSection[] {
           id: "redeem-gift-code",
           name: strings.redeemGiftCode(),
           description: strings.redeemGiftCodeDesc(),
-          hidden: (current) => {
-            return !current as boolean;
-          },
+          hidden: () => true,
           useHook: () =>
             useUserStore(
               (state) =>
@@ -445,9 +433,7 @@ export function getSettingsGroups(): SettingSection[] {
               id: "subscription-not-active",
               name: strings.subscriptionNotActivated(),
               useHook: () => useUserStore((state) => state.user),
-              hidden: (user) =>
-                Platform.OS !== "ios" ||
-                (user as User)?.subscription?.plan !== SubscriptionPlan.FREE,
+              hidden: () => true,
               modifer: async () => {
                 if (Platform.OS === "android") return;
                 try {

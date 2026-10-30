@@ -199,7 +199,6 @@ export function TaskList(props: ToolProps) {
     <ToolButton
       icon={props.icon}
       title={props.title}
-      premium={props.premium}
       toggled={editor.isActive("taskList")}
       onClick={() => editor.chain().focus().toggleTaskList().run()}
     />

@@ -18,13 +18,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { formatBytes } from "@notesnook/common";
-import { SubscriptionPlan, SubscriptionProvider } from "@notesnook/core";
 import { strings } from "@notesnook/intl";
 import { useThemeColors } from "@notesnook/theme";
 import { useNetInfo } from "@react-native-community/netinfo";
 import dayjs from "dayjs";
 import React from "react";
-import { Image, Platform, TouchableOpacity, View } from "react-native";
+import { Image, TouchableOpacity, View } from "react-native";
 import ImagePicker from "react-native-image-crop-picker";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { db } from "../../common/database";
@@ -33,21 +32,14 @@ import {
   createFormRef,
   validators
 } from "../../components/ui/input/form-input";
-import { PlanLimits } from "../../components/sheets/plan-limits";
 import AppIcon from "../../components/ui/AppIcon";
-import { Button } from "../../components/ui/button";
 import { TimeSince } from "../../components/ui/time-since";
 import Paragraph from "../../components/ui/typography/paragraph";
-import { presentSheet, ToastManager } from "../../services/event-manager";
-import Navigation from "../../services/navigation";
-import PremiumService from "../../services/premium";
 import { useThemeStore } from "../../stores/use-theme-store";
 import { SyncStatus, useUserStore } from "../../stores/use-user-store";
-import { planToDisplayName } from "../../utils/constants";
 import { AppFontSize } from "../../utils/size";
 import { DefaultAppStyles } from "../../utils/styles";
 import { SectionItem } from "./section-item";
-import SettingsService from "../../services/settings";
 
 export const getTimeLeft = (t2) => {
   let daysRemaining = dayjs(t2).diff(dayjs(), "days");
@@ -136,12 +128,6 @@ const SettingsUserSection = ({ item }) => {
   const userProfile = useUserStore((state) => state.profile);
   const used = user?.storageUsed || 0;
   const total = user?.totalStorage || 0;
-
-  const isCurrentPlatform =
-    (user?.subscription?.provider === SubscriptionProvider.APPLE &&
-      Platform.OS === "ios") ||
-    (user?.subscription?.provider === SubscriptionProvider.GOOGLE &&
-      Platform.OS === "android");
 
   return (
     <>
@@ -331,83 +317,14 @@ const SettingsUserSection = ({ item }) => {
               <View
                 style={{
                   flexDirection: "row",
-                  justifyContent: "space-between",
                   alignItems: "center",
                   width: "100%",
-                  paddingHorizontal: DefaultAppStyles.GAP_SMALL,
-                  borderRadius: 10
+                  paddingHorizontal: DefaultAppStyles.GAP_SMALL
                 }}
               >
-                <TouchableOpacity
-                  activeOpacity={1}
-                  onPress={() => {
-                    presentSheet({
-                      component: <PlanLimits />
-                    });
-                  }}
-                >
-                  <Paragraph size={AppFontSize.sm}>
-                    {planToDisplayName(user.subscription?.plan)}
-                  </Paragraph>
-                  <Paragraph
-                    color={colors.secondary.paragraph}
-                    size={AppFontSize.xxxs}
-                  >
-                    {strings.viewAllLimits()}{" "}
-                    <AppIcon name="information" size={AppFontSize.xxxs} />
-                  </Paragraph>
-                </TouchableOpacity>
-
-                {((user.subscription?.provider ===
-                  SubscriptionProvider.PADDLE ||
-                  user.subscription?.provider ===
-                    SubscriptionProvider.STREETWRITERS ||
-                  !isCurrentPlatform) &&
-                  PremiumService.get()) ||
-                SettingsService.getProperty("serverUrls") ? null : (
-                  <Button
-                    title={
-                      user.subscription?.plan !== SubscriptionPlan.FREE
-                        ? strings.changePlan()
-                        : strings.upgradePlan()
-                    }
-                    onPress={() => {
-                      if (
-                        user?.subscription?.plan === SubscriptionPlan.LEGACY_PRO
-                      ) {
-                        ToastManager.show({
-                          message: strings.cannotChangePlan(),
-                          context: "local"
-                        });
-                        return;
-                      }
-
-                      if (
-                        user.subscription?.plan !== SubscriptionPlan.FREE &&
-                        user.subscription?.productId &&
-                        user.subscription?.productId.includes("5year")
-                      ) {
-                        ToastManager.show({
-                          message: strings.contactSupportToChangePlan(),
-                          type: "info"
-                        });
-                        return;
-                      }
-
-                      Navigation.navigate("PayWall", {
-                        context: "logged-in",
-                        canGoBack: true
-                      });
-                    }}
-                    type="accent"
-                    fontSize={AppFontSize.xs}
-                    style={{
-                      paddingHorizontal: DefaultAppStyles.GAP_SMALL,
-                      height: "auto",
-                      paddingVertical: DefaultAppStyles.GAP_SMALL
-                    }}
-                  />
-                )}
+                <Paragraph size={AppFontSize.sm}>
+                  JivanLekh is free for everyone.
+                </Paragraph>
               </View>
             </View>
           </View>

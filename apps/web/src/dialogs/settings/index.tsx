@@ -35,7 +35,6 @@ import {
   Notification,
   PasswordAndAuth,
   Privacy,
-  Pro,
   Servers,
   ShieldLock,
   Sync,
@@ -72,7 +71,6 @@ import {
 } from "./other-settings";
 import { AppearanceSettings } from "./appearance-settings";
 import { debounce, useIsFeatureAvailable, usePromise } from "@notesnook/common";
-import { SubscriptionSettings } from "./subscription-settings";
 import { ScopedThemeProvider } from "../../components/theme-provider";
 import { AppLockSettings } from "./app-lock-settings";
 import { BaseDialogProps, DialogManager } from "../../common/dialog-manager";
@@ -93,12 +91,6 @@ const sectionGroups: SectionGroup[] = [
     title: strings.account(),
     sections: [
       { key: "profile", title: strings.profile(), icon: Account },
-      {
-        key: "subscription",
-        title: strings.subDetails(),
-        icon: Pro,
-        isHidden: () => !useUserStore.getState().isLoggedIn
-      },
       {
         key: "auth",
         title: strings.authentication(),
@@ -185,7 +177,6 @@ const SettingsGroups = [
   ...LegalSettings,
   ...SupportSettings,
   ...AboutSettings,
-  ...SubscriptionSettings,
   ...ServersSettings,
   ...InboxSettings,
 ];

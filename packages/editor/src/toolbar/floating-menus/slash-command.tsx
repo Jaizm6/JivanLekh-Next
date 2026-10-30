@@ -11,7 +11,6 @@ the Free Software Foundation, either version 3 of the License, or
 
 import { Box, Button, Flex, Text } from "@theme-ui/components";
 import { Icon } from "@notesnook/ui";
-import { mdiCrown } from "@mdi/js";
 import { TextSelection } from "@tiptap/pm/state";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { PopupWrapper } from "../../components/popup-presenter/index.js";
@@ -29,7 +28,6 @@ type SlashCommand = {
   aliases: string[];
   icon: string;
   color: string;
-  premium?: boolean;
   run: (editor: Editor, range: SlashRange) => void;
 };
 
@@ -81,12 +79,12 @@ export function SlashCommandFloatingMenu({ editor }: FloatingMenuProps) {
       },
       {
         id: "task-list", title: "Task list", description: "Tasks with a title and progress tracking",
-        aliases: ["task", "tasks", "tasklist", "progress"], icon: Icons.checkbox, color: COMMAND_COLORS.list, premium: true,
+        aliases: ["task", "tasks", "tasklist", "progress"], icon: Icons.checkbox, color: COMMAND_COLORS.list,
         run: (editor, range) => editor.chain().focus().deleteRange(range).toggleTaskList().run()
       },
       {
         id: "outline-list", title: "Outline list", description: "Expandable outline",
-        aliases: ["outline", "toc", "table of contents"], icon: Icons.outlineList, color: COMMAND_COLORS.list, premium: true,
+        aliases: ["outline", "toc", "table of contents"], icon: Icons.outlineList, color: COMMAND_COLORS.list,
         run: (editor, range) => editor.chain().focus().deleteRange(range).toggleOutlineList().run()
       },
       {
@@ -111,7 +109,7 @@ export function SlashCommandFloatingMenu({ editor }: FloatingMenuProps) {
       },
       {
         id: "callout", title: "Callout", description: "Highlighted information block",
-        aliases: ["info", "note", "highlight"], icon: Icons.callout, color: COMMAND_COLORS.heading, premium: true,
+        aliases: ["info", "note", "highlight"], icon: Icons.callout, color: COMMAND_COLORS.heading,
         run: (editor, range) => editor.chain().focus().deleteRange(range).setCallout({ type: "info" }).run()
       },
       {
@@ -291,20 +289,6 @@ export function SlashCommandFloatingMenu({ editor }: FloatingMenuProps) {
                   <Box sx={{ minWidth: 0, flex: 1 }}>
                     <Text variant="body" sx={{ display: "block" }}>
                       {command.title}
-                      {command.premium ? (
-                        <Icon
-                          path={mdiCrown}
-                          size={10}
-                          color="#e8b923"
-                          as="span"
-                          sx={{
-                            display: "inline-flex",
-                            verticalAlign: "super",
-                            ml: "3px",
-                            transform: "translateY(-3px)"
-                          }}
-                        />
-                      ) : null}
                     </Text>
                     <Text variant="subBody" sx={{ color: "paragraph-secondary" }}>{command.description}</Text>
                   </Box>

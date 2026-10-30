@@ -21,7 +21,6 @@ import { Theme } from "@notesnook/theme";
 import { SchemeColors } from "@notesnook/theme";
 import React from "react";
 import { Box, ButtonProps } from "@theme-ui/components";
-import { mdiCrown } from "@mdi/js";
 import { IconNames, Icons } from "../icons.js";
 import { ToolButtonVariant } from "../types.js";
 import { Button } from "../../components/button.js";
@@ -46,7 +45,6 @@ export type ToolButtonProps = ButtonProps & {
   iconColor?: SchemeColors;
   iconSize?: keyof Theme["iconSizes"] | number;
   toggled?: boolean;
-  premium?: boolean;
   buttonRef?: React.RefObject<HTMLButtonElement>;
   variant?: ToolButtonVariant;
 };
@@ -58,7 +56,6 @@ export const ToolButton = React.memo(
       iconSize,
       iconColor,
       toggled,
-      premium,
       sx,
       buttonRef,
       variant = "normal",
@@ -103,19 +100,6 @@ export const ToolButton = React.memo(
             color={toggled ? "icon-selected" : iconColor || TOOL_ICON_COLORS[icon] || "#4B83B8"}
             size={iconSize || (variant === "small" ? "medium" : "big")}
           />
-          {premium ? (
-            <Icon
-              path={mdiCrown}
-              color="#e8b923"
-              size={10}
-              sx={{
-                position: "absolute",
-                top: -5,
-                right: -6,
-                zIndex: 1
-              }}
-            />
-          ) : null}
         </Box>
       </Button>
     );

@@ -21,16 +21,6 @@ import { SubscriptionPlan } from "@notesnook/core";
 import { strings } from "@notesnook/intl";
 import { database as db } from "../database.js";
 
-// Personal-fork administrator allow-list. Add a third address here when assigned.
-const JIVANLEKH_ADMIN_EMAILS = new Set([
-  "jaiprakashm6.jm@gmail.com",
-  "jaiprakashog@gmail.com"
-]);
-
-export function isJivanLekhAdmin(email?: string | null): boolean {
-  return !!email && JIVANLEKH_ADMIN_EMAILS.has(email.trim().toLowerCase());
-}
-
 type CaptionValue = ("infinity" | (string & {})) | boolean | number;
 type Limit<TCaption extends CaptionValue = CaptionValue> = {
   caption: TCaption;
@@ -131,6 +121,11 @@ export type FeatureId = keyof typeof features;
 type Features = typeof features;
 type Caption<TId extends FeatureId> =
   Features[TId]["availability"][keyof FeatureAvailability]["caption"];
+
+// JivanLekh's built-in product features are free for every user.
+// Keep the tier definitions for compatibility with shared UI, while feature
+// checks use the full built-in feature baseline for all accounts.
+const JIVANLEKH_FEATURE_PLAN = SubscriptionPlan.BELIEVER;
 
 const features = {
   storage: createFeature({
@@ -624,7 +619,7 @@ export async function isFeatureAvailable<TId extends FeatureId>(
 export async function getFeatureLimit<TId extends FeatureId>(
   feature: Feature<TId>
 ) {
-  const plan = await getUserPlan();
+  const plan = JIVANLEKH_FEATURE_PLAN;
   return getFeatureLimitFromPlan(feature, plan);
 }
 
@@ -634,7 +629,7 @@ export async function areFeaturesAvailable<TIds extends FeatureId[]>(
 ): Promise<{
   [K in TIds[number]]: FeatureResult<K>;
 }> {
-  const plan = await getUserPlan();
+  const plan = JIVANLEKH_FEATURE_PLAN;
   const results = {} as {
     [K in TIds[number]]: FeatureResult<K>;
   };
@@ -656,15 +651,6 @@ export async function areFeaturesAvailable<TIds extends FeatureId[]>(
   }
 
   return results;
-}
-
-async function getUserPlan() {
-  const user = await db.user.getUser();
-
-  // Admin accounts receive the highest standard JivanLekh feature tier.
-  if (isJivanLekhAdmin(user?.email)) return SubscriptionPlan.BELIEVER;
-
-  return user?.subscription?.plan || SubscriptionPlan.FREE;
 }
 
 async function availableOn(id: FeatureId, value?: number) {
@@ -719,7 +705,7 @@ export type FeatureUsage = {
   used: number;
 };
 export async function getFeaturesUsage(): Promise<FeatureUsage[]> {
-  const plan = await getUserPlan();
+  const plan = JIVANLEKH_FEATURE_PLAN;
   const usage: FeatureUsage[] = [];
   for (const key in features) {
     const feature = getFeature(key as FeatureId);
