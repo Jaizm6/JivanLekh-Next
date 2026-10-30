@@ -24,6 +24,7 @@ import { NodeWithPos } from "@tiptap/core";
 import { findParentNodeClosestToPos } from "../../utils/prosemirror.js";
 import TaskItem from "@tiptap/extension-task-item";
 import { TaskItemNode } from "../task-item/index.js";
+import { getTaskItemText, parseExpenseAmount } from "./expense.js";
 
 export function countCheckedItems(node: ProsemirrorNode) {
   let checked = 0;
@@ -121,6 +122,57 @@ export function sortList(tr: Transaction, pos: number) {
   if (!tr.steps.length) return null;
   //preserve cursor location
   tr.setSelection(TextSelection.create(tr.doc, originalFrom, originalTo));
+  return tr;
+}
+
+
+export function sortListByAmount(
+  tr: Transaction,
+  pos: number,
+  direction: "asc" | "desc"
+) {
+  const originalFrom = tr.selection.from;
+  const originalTo = tr.selection.to;
+  const node = tr.doc.nodeAt(pos);
+  const parent = node ? { node, pos } : null;
+  if (!parent || parent.node.type.name !== TaskList.name) return null;
+
+  const sublists: NodeWithPos[] = [];
+  parent.node.descendants((child, childPos) => {
+    if (child.type.name === TaskList.name) {
+      sublists.push({ node: child, pos: pos + childPos + 1 });
+    }
+  });
+  if (sublists.length > 1) sublists.reverse();
+  sublists.push(parent);
+
+  for (const list of sublists) {
+    const listNode = tr.doc.nodeAt(tr.mapping.map(list.pos));
+    if (!listNode) continue;
+
+    const children: { index: number; amount: number }[] = [];
+    listNode.forEach((child, _, index) => {
+      children.push({
+        index,
+        amount: parseExpenseAmount(getTaskItemText(child)) ?? 0
+      });
+    });
+    const sorted = [...children].sort((a, b) =>
+      direction === "asc" ? a.amount - b.amount : b.amount - a.amount
+    );
+    if (sorted.every((child, index) => child.index === index)) continue;
+
+    tr.replaceWith(
+      tr.mapping.map(list.pos + 1),
+      tr.mapping.map(list.pos + listNode.nodeSize - 1),
+      Fragment.from(sorted.map((child) => listNode.child(child.index)))
+    );
+  }
+
+  if (!tr.steps.length) return null;
+  const from = Math.min(originalFrom, tr.doc.content.size);
+  const to = Math.min(originalTo, tr.doc.content.size);
+  tr.setSelection(TextSelection.create(tr.doc, from, to));
   return tr;
 }
 

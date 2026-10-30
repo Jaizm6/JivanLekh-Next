@@ -115,7 +115,7 @@ const tools = (): Record<ToolId, ToolDefinition> => ({
   },
   taskList: {
     icon: "checkbox",
-    title: strings.taskList()
+    title: "Expense Checklist"
   },
   fontFamily: {
     icon: "fontFamily",

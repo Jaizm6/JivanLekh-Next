@@ -47,6 +47,7 @@ export type ToolButtonProps = ButtonProps & {
   toggled?: boolean;
   buttonRef?: React.RefObject<HTMLButtonElement>;
   variant?: ToolButtonVariant;
+  iconElement?: React.ReactNode;
 };
 export const ToolButton = React.memo(
   function ToolButton(props: ToolButtonProps) {
@@ -59,6 +60,7 @@ export const ToolButton = React.memo(
       sx,
       buttonRef,
       variant = "normal",
+      iconElement,
       ...buttonProps
     } = props;
     const isMobile = useIsMobile();
@@ -95,11 +97,13 @@ export const ToolButton = React.memo(
         {...buttonProps}
       >
         <Box sx={{ position: "relative", display: "inline-flex" }}>
-          <Icon
-            path={Icons[icon]}
-            color={toggled ? "icon-selected" : iconColor || TOOL_ICON_COLORS[icon] || "#4B83B8"}
-            size={iconSize || (variant === "small" ? "medium" : "big")}
-          />
+          {iconElement ?? (
+            <Icon
+              path={Icons[icon]}
+              color={toggled ? "icon-selected" : iconColor || TOOL_ICON_COLORS[icon] || "#4B83B8"}
+              size={iconSize || (variant === "small" ? "medium" : "big")}
+            />
+          )}
         </Box>
       </Button>
     );
@@ -108,6 +112,7 @@ export const ToolButton = React.memo(
     return (
       prev.toggled === next.toggled &&
       prev.icon === next.icon &&
+      prev.iconElement === next.iconElement &&
       prev.disabled === next.disabled &&
       prev.onClick === next.onClick &&
       JSON.stringify(prev.sx) === JSON.stringify(next.sx)

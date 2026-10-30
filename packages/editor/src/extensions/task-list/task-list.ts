@@ -47,6 +47,8 @@ type TaskListStats = { checked: number; total: number };
 export type TaskListAttributes = {
   title: string;
   readonly: boolean;
+  currencySymbol: string;
+  showCurrency: boolean;
   stats: TaskListStats;
 };
 
@@ -85,15 +87,25 @@ export const TaskListNode = TaskList.extend({
       readonly: {
         default: false,
         keepOnSplit: false,
-        parseHTML: (element) => element.dataset.readonly,
-        renderHTML: (attributes) => {
-          if (!attributes.readonly) {
-            return {};
-          }
-          return {
-            "data-readonly": attributes.readonly
-          };
-        }
+        parseHTML: (element) => element.dataset.readonly === "true",
+        renderHTML: (attributes) =>
+          attributes.readonly ? { "data-readonly": "true" } : {}
+      },
+      currencySymbol: {
+        default: "₹",
+        keepOnSplit: false,
+        parseHTML: (element) => element.dataset.currencySymbol || "₹",
+        renderHTML: (attributes) =>
+          attributes.currencySymbol && attributes.currencySymbol !== "₹"
+            ? { "data-currency-symbol": attributes.currencySymbol }
+            : {}
+      },
+      showCurrency: {
+        default: true,
+        keepOnSplit: false,
+        parseHTML: (element) => element.dataset.showCurrency !== "false",
+        renderHTML: (attributes) =>
+          attributes.showCurrency === false ? { "data-show-currency": "false" } : {}
       }
     };
   },
@@ -126,12 +138,18 @@ export const TaskListNode = TaskList.extend({
 
           const { $from, $to } = state.selection;
 
+          const parentAttributes = getParentAttributes(this.editor, true, true);
           chain()
             .toggleList(
               this.name,
               this.options.itemTypeName,
               true,
-              getParentAttributes(this.editor, true, true)
+              {
+                ...parentAttributes,
+                title: parentAttributes.title ?? "Expense Checklist",
+                currencySymbol: parentAttributes.currencySymbol ?? "₹",
+                showCurrency: parentAttributes.showCurrency ?? true
+              }
             )
             .run();
 
@@ -163,6 +181,7 @@ export const TaskListNode = TaskList.extend({
         return (
           !hasSameAttributes(prev.attrs, next.attrs) ||
           !hasSameAttributes(prev.attrs.stats, next.attrs.stats) ||
+          prev.textContent !== next.textContent ||
           prev.childCount !== next.childCount ||
           countCheckedItems(prev).checked !== countCheckedItems(next).checked
         );

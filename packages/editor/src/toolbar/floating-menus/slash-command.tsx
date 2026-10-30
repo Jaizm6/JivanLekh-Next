@@ -78,8 +78,8 @@ export function SlashCommandFloatingMenu({ editor }: FloatingMenuProps) {
         run: (editor, range) => editor.chain().focus().deleteRange(range).toggleCheckList().run()
       },
       {
-        id: "task-list", title: "Task list", description: "Tasks with a title and progress tracking",
-        aliases: ["task", "tasks", "tasklist", "progress"], icon: Icons.checkbox, color: COMMAND_COLORS.list,
+        id: "task-list", title: "Expense Checklist", description: "Tasks and expenses with live totals and settled status",
+        aliases: ["task", "tasks", "tasklist", "progress", "expense", "expenses", "bill", "cost"], icon: Icons.checkbox, color: COMMAND_COLORS.list,
         run: (editor, range) => editor.chain().focus().deleteRange(range).toggleTaskList().run()
       },
       {
@@ -99,7 +99,7 @@ export function SlashCommandFloatingMenu({ editor }: FloatingMenuProps) {
       },
       {
         id: "table", title: "Table", description: "Insert a table with a header row",
-        aliases: ["grid", "database", "db", "rows", "tbl", "expense", "calc", "sum"], icon: Icons.table, color: COMMAND_COLORS.table,
+        aliases: ["grid", "database", "db", "rows", "tbl", "calc", "sum"], icon: Icons.table, color: COMMAND_COLORS.table,
         run: (editor, range) => editor.chain().focus().deleteRange(range).insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
       },
       {

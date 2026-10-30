@@ -7,14 +7,6 @@ This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { Box, Flex } from "@theme-ui/components";
@@ -22,7 +14,7 @@ import { ReactNodeViewProps } from "../react/index.js";
 import { Icon } from "@notesnook/ui";
 import { Icons } from "../../toolbar/icons.js";
 import { findChildrenInRange } from "@tiptap/core";
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import type { TaskItemAttributes } from "./task-item.js";
 import { useIsMobile } from "../../toolbar/stores/toolbar-store.js";
 import { isiOS } from "../../utils/platform.js";
@@ -30,13 +22,23 @@ import { startItemDrag } from "../drag-drop/index.js";
 import { DesktopOnly } from "../../components/responsive/index.js";
 import TaskItem from "@tiptap/extension-task-item";
 import { strings } from "@notesnook/intl";
+import { formatExpenseAmount, getTaskItemText, parseExpenseAmount } from "../task-list/expense.js";
 
 export function TaskItemComponent(
   props: ReactNodeViewProps<TaskItemAttributes>
 ) {
   const { editor, updateAttributes, getPos, forwardRef, node } = props;
-  const { checked } = props.node.attrs;
+  const {
+    checked,
+    readonly,
+    expenseCurrencySymbol = "₹",
+    expenseShowCurrency = true
+  } = props.node.attrs;
   const isMobile = useIsMobile();
+  const amount = useMemo(
+    () => parseExpenseAmount(getTaskItemText(node)),
+    [node, node.textContent]
+  );
 
   const toggle = useCallback(() => {
     if (!editor.isEditable || !editor) return false;
@@ -50,7 +52,8 @@ export function TaskItemComponent(
     if (!empty && selectedTaskItems.findIndex((a) => a.node === node) > -1) {
       editor.commands.command(({ tr }) => {
         for (const { pos } of selectedTaskItems) {
-          tr.setNodeMarkup(pos, null, { checked: !checked });
+          const item = tr.doc.nodeAt(pos);
+          if (item) tr.setNodeMarkup(pos, null, { ...item.attrs, checked: !checked });
         }
         return true;
       });
@@ -67,7 +70,8 @@ export function TaskItemComponent(
         flexDirection: "row",
         alignItems: "center",
         width: "100%",
-        justifyContent: "space-between"
+        justifyContent: "space-between",
+        gap: "8px"
       }}
     >
       <Flex
@@ -75,14 +79,14 @@ export function TaskItemComponent(
           flexDirection: "row",
           alignItems: "center",
           maxWidth: "100%",
-          flexGrow: 1
+          flexGrow: 1,
+          minWidth: 0
         }}
       >
-        {editor.isEditable && (
+        {editor.isEditable && !readonly && (
           <Icon
             className="dragHandle"
             data-drag-handle
-            // dragging is ours, not the browser's: see extensions/drag-drop
             onPointerDown={(e) => startItemDrag(editor, getPos, e.nativeEvent)}
             path={Icons.dragHandle}
             sx={{
@@ -93,16 +97,11 @@ export function TaskItemComponent(
               mr: "0.2rem",
               fontFamily: "inherit",
               marginTop: "calc((1lh - 18px) / 2)",
-              // the browser must not take this gesture for scrolling, text
-              // selection or the long press callout
               touchAction: "none",
               userSelect: "none",
               WebkitUserSelect: "none",
               WebkitTouchCallout: "none",
               svg: { pointerEvents: "none" },
-              // hit slop: an invisible box larger than the icon, so a finger
-              // landing near the handle still starts the drag instead of the
-              // browser selecting the text next to it.
               position: "relative",
               "::before": {
                 content: '""',
@@ -123,23 +122,17 @@ export function TaskItemComponent(
           sx={{
             border: "2px solid",
             borderColor: checked ? "accent" : "icon",
-            borderRadius: "default",
+            borderRadius: "4px",
             alignSelf: "start",
             p: "1px",
             marginInlineEnd: 1,
             cursor: editor.isEditable ? "pointer" : "unset",
-            ":hover": isMobile
-              ? undefined
-              : {
-                  borderColor: "accent"
-                },
+            ":hover": isMobile ? undefined : { borderColor: "accent" },
             fontFamily: "inherit",
             marginTop: "calc((1lh - 16px) / 2)"
           }}
           onMouseDown={(e) => {
-            if (globalThis.keyboardShown) {
-              e.preventDefault();
-            }
+            if (globalThis.keyboardShown) e.preventDefault();
             toggle();
           }}
           onTouchEnd={(e) => {
@@ -148,7 +141,7 @@ export function TaskItemComponent(
               toggle();
             }
           }}
-          color={checked ? "accent" : "icon"}
+          color={checked ? "#059669" : "icon"}
           size={isMobile ? "1.70ch" : "1.36ch"}
         />
 
@@ -160,49 +153,70 @@ export function TaskItemComponent(
               opacity: checked ? 0.8 : 1
             },
             flex: 1,
+            minWidth: 0,
             mt: ["3px", "3px", 0],
             ml: ["2px", "2px", 0]
           }}
         />
       </Flex>
-      <DesktopOnly>
-        <Flex
-          className="taskItemTools"
+
+      {amount !== null ? (
+        <Box
+          as="span"
+          contentEditable={false}
           sx={{
-            bg: "background",
-            opacity: 0,
-            position: "absolute",
-            insetInlineEnd: 0,
-            top: 0,
-            marginTop: "calc((1lh - 14px) / 2)"
+            display: "inline-flex",
+            alignItems: "center",
+            flexShrink: 0,
+            whiteSpace: "nowrap",
+            px: 2,
+            py: "2px",
+            bg: checked ? "background-secondary" : "#ecfdf5",
+            border: "1px solid",
+            borderColor: checked ? "var(--border)" : "#a7f3d0",
+            borderRadius: "6px",
+            color: checked ? "paragraph-secondary" : "#065f46",
+            textDecoration: checked ? "line-through" : "none",
+            fontSize: "12px",
+            fontWeight: 700,
+            fontFamily: "monospace"
           }}
         >
-          {editor.isEditable && (
+          {formatExpenseAmount(amount, expenseCurrencySymbol, expenseShowCurrency)}
+        </Box>
+      ) : null}
+
+      <DesktopOnly>
+        {editor.isEditable && !readonly ? (
+          <Flex
+            className="taskItemTools"
+            sx={{
+              bg: "background",
+              opacity: 0,
+              position: "absolute",
+              insetInlineEnd: 0,
+              top: 0,
+              marginTop: "calc((1lh - 14px) / 2)"
+            }}
+          >
             <Icon
               className="deleleTaskItem"
               title={strings.delete()}
               path={Icons.close}
               size={18}
-              sx={{
-                cursor: "pointer"
-              }}
+              sx={{ cursor: "pointer" }}
               onClick={() => {
-                if (!editor) return;
-                const pos = getPos();
-
-                // we need to get a fresh instance of the task list instead
-                // of using the one we got via props.
-                const node = editor.state.doc.nodeAt(pos);
-                if (!node) return;
-
+                const position = getPos();
+                const current = editor.state.doc.nodeAt(position);
+                if (!current) return;
                 editor.commands.command(({ tr }) => {
-                  tr.deleteRange(pos, pos + node.nodeSize);
+                  tr.deleteRange(position, position + current.nodeSize);
                   return true;
                 });
               }}
             />
-          )}
-        </Flex>
+          </Flex>
+        ) : null}
       </DesktopOnly>
     </Flex>
   );
