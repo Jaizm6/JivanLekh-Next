@@ -24,7 +24,6 @@ import { showToast } from "../../utils/toast";
 import { checkForUpdate, downloadUpdate } from "../../utils/updater";
 import { clearLogs, downloadLogs } from "../../utils/logger";
 import { useAutoUpdateStore } from "../../hooks/use-auto-updater";
-import { IssueDialog } from "../issue-dialog";
 import { strings } from "@notesnook/intl";
 import { desktop } from "../../common/desktop-bridge";
 import { TaskManager } from "../../common/task-manager";
@@ -87,7 +86,7 @@ export const AboutSettings: SettingsGroup[] = [
       {
         key: "release-track",
         title: strings.releaseTrack(),
-        description: strings.releaseTrackDesc(),
+        description: "Choose whether to receive stable or preview updates for JivanLekh.",
         isHidden: () =>
           useSettingStore.getState().isFlatpak ||
           useSettingStore.getState().isSnap ||
@@ -157,7 +156,7 @@ export const AboutSettings: SettingsGroup[] = [
       {
         key: "source-code",
         title: strings.sourceCode(),
-        description: strings.sourceCodeDescription(),
+        description: "Explore the JivanLekh source code and contribute on GitHub.",
         components: [
           {
             type: "button",
@@ -227,11 +226,13 @@ export const SupportSettings: SettingsGroup[] = [
       {
         key: "report-issue",
         title: strings.reportAnIssue(),
-        description: strings.reportAnIssueDesc(),
+        description: "Report a bug or suggest an improvement in the JivanLekh repository.",
         components: [
           {
             type: "button",
-            action: () => IssueDialog.show({}),
+            action: () => {
+              window.open("https://github.com/Jaizm6/JivanLekh-Next/issues/new", "_blank");
+            },
             title: strings.report(),
             variant: "secondary"
           }
@@ -240,7 +241,7 @@ export const SupportSettings: SettingsGroup[] = [
       {
         key: "docs",
         title: strings.documentation(),
-        description: strings.documentationDesc(),
+        description: "Read the project README for source code and setup information.",
         components: [
           {
             type: "button",
