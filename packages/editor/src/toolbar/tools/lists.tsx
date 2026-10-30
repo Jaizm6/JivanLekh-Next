@@ -186,7 +186,7 @@ export function CheckList(props: ToolProps) {
     <ToolButton
       icon={props.icon}
       title={props.title}
-      toggled={false}
+      toggled={editor.isActive("checkList")}
       onClick={() => editor.chain().focus().toggleCheckList().run()}
     />
   );
