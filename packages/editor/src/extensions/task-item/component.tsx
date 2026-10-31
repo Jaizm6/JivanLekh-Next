@@ -106,27 +106,31 @@ export function TaskItemComponent(
             path={Icons.dragHandle}
             sx={{
               opacity: [1, 1, 0],
-              alignSelf: "start",
+              position: "absolute",
+              insetInlineStart: 0,
+              top: "50%",
+              transform: "translateY(-50%)",
+              width: "10px",
+              height: "10px",
+              p: 0,
+              m: 0,
               bg: "transparent",
               cursor: "grab",
-              mr: "0.2rem",
               fontFamily: "inherit",
-              marginTop: "calc((1lh - 18px) / 2)",
               touchAction: "none",
               userSelect: "none",
               WebkitUserSelect: "none",
               WebkitTouchCallout: "none",
               svg: { pointerEvents: "none" },
-              position: "relative",
               "::before": {
                 content: '""',
                 position: "absolute",
                 insetBlock: "-12px",
-                insetInlineStart: "-16px",
-                insetInlineEnd: "-2px"
+                insetInlineStart: "-8px",
+                insetInlineEnd: 0
               }
             }}
-            size={isMobile ? "2.46ch" : "2.22ch"}
+            size="10px"
           />
         )}
         <Icon
