@@ -210,7 +210,6 @@ export function TaskListComponent(
           <Flex sx={{ alignItems: "center", gap: 2, flex: "1 1 180px", minWidth: 0 }}>
             {editor.isEditable ? (
               <Button
-                as="button"
                 type="button"
                 aria-label={checked ? "Uncheck all tasks" : "Check all tasks"}
                 title="Toggle all tasks"
@@ -353,7 +352,6 @@ export function TaskListComponent(
                         <Text sx={{ fontSize: "12px" }}>Show Currency</Text>
                         <Flex sx={{ bg: "background-secondary", p: "2px", borderRadius: "6px", gap: "2px" }}>
                           <Button
-                            as="button"
                             type="button"
                             onClick={() => updateExpenseSettings({ showCurrency: true })}
                             sx={{ border: 0, borderRadius: "4px", px: 2, py: "3px", bg: showCurrency ? "background" : "transparent", color: showCurrency ? "paragraph" : "paragraph-secondary", boxShadow: showCurrency ? "0 1px 2px rgba(0,0,0,.08)" : "none", fontSize: "11px", fontWeight: 600 }}
@@ -361,7 +359,6 @@ export function TaskListComponent(
                             Yes
                           </Button>
                           <Button
-                            as="button"
                             type="button"
                             onClick={() => updateExpenseSettings({ showCurrency: false })}
                             sx={{ border: 0, borderRadius: "4px", px: 2, py: "3px", bg: !showCurrency ? "background" : "transparent", color: !showCurrency ? "paragraph" : "paragraph-secondary", boxShadow: !showCurrency ? "0 1px 2px rgba(0,0,0,.08)" : "none", fontSize: "11px", fontWeight: 600 }}
@@ -373,7 +370,6 @@ export function TaskListComponent(
                       <Flex sx={{ alignItems: "center", justifyContent: "space-between", gap: 2, py: 1 }}>
                         <Text sx={{ fontSize: "12px" }}>Currency Symbol</Text>
                         <Select
-                          as="select"
                           value={currencySymbol}
                           disabled={!showCurrency}
                           onChange={(event) => updateExpenseSettings({ currencySymbol: event.target.value })}
@@ -400,7 +396,6 @@ export function TaskListComponent(
                       ].map((action) => (
                         <Button
                           key={action.id}
-                          as="button"
                           type="button"
                           role="menuitem"
                           onClick={() => runListAction(action.id as "moveChecked" | "sortHigh" | "sortLow" | "uncheckAll" | "checkAll" | "deleteChecked")}
@@ -489,7 +484,6 @@ export function TaskListComponent(
         >
           {!readonly && editor.isEditable ? (
             <Button
-              as="button"
               type="button"
               onClick={addTask}
               sx={{
