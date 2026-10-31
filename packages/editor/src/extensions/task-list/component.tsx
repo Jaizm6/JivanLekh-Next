@@ -208,25 +208,6 @@ export function TaskListComponent(
           }}
         >
           <Flex sx={{ alignItems: "center", gap: 2, flex: "1 1 180px", minWidth: 0 }}>
-            <Box sx={{ display: "flex", alignItems: "center", flexShrink: 0 }} title="Expense Checklist">
-              <svg
-                width="22"
-                height="22"
-                viewBox="0 0 24 24"
-                fill="none"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-              >
-                <path
-                  d="M21 11v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2"
-                  stroke="#2563eb"
-                />
-                <path d="M13 6.5H8l2.5 2.5L8 11.5h5" stroke="#ef4444" />
-                <path d="m6.5 15 3.5 3.5 13.5-13" stroke="#2563eb" />
-              </svg>
-            </Box>
             {editor.isEditable ? (
               <Box
                 as="button"
