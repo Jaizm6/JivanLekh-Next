@@ -1125,3 +1125,59 @@ del.diffdel {
     transition: none;
   }
 }
+
+
+/* Notion-style controls shown beside the active top-level editor block. */
+.jl-block-controls,
+.jl-block-menu {
+  font-family: inherit;
+}
+
+.jl-block-control-button {
+  opacity: 0.62;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  transition: opacity 120ms ease, background-color 120ms ease, color 120ms ease;
+}
+
+.jl-block-controls:hover .jl-block-control-button,
+.jl-block-control-button:focus-visible {
+  opacity: 1;
+  color: var(--paragraph);
+  background: var(--background-secondary, var(--background));
+}
+
+.jl-block-drag-handle:active {
+  cursor: grabbing !important;
+}
+
+.jl-block-menu-item:hover,
+.jl-block-menu-item:focus-visible {
+  background: var(--background-secondary, rgba(127, 127, 127, 0.12)) !important;
+  outline: none;
+}
+
+.jl-block-menu-divider {
+  border-top: 1px solid var(--separator, var(--border));
+  margin: 5px 3px;
+}
+
+.jl-block-menu-heading {
+  color: var(--paragraph-secondary);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 5px 10px 3px;
+  text-transform: uppercase;
+}
+
+.jl-block-menu-danger {
+  color: var(--jl-icon-danger, #c64f4f) !important;
+}
+
+@media (max-width: 640px) {
+  .jl-block-control-button {
+    opacity: 0.95;
+    min-width: 28px;
+    min-height: 28px;
+  }
+}
