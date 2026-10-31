@@ -441,6 +441,9 @@ export function BlockControls({ editor }: { editor: Editor }) {
     };
 
     const onUp = (upEvent: PointerEvent) => {
+      // Re-evaluate the release point so a fast final movement cannot leave
+      // the drop line pointing at the previous block.
+      if (dragging) showDragFeedback(upEvent);
       const finalDrop = dropTarget;
       cleanup();
 
