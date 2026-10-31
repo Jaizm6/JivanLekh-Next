@@ -26,7 +26,6 @@ import {
   GlobalErrorHandler
 } from "./components/error-boundary";
 import { desktop } from "./common/desktop-bridge";
-import { useKeyStore } from "./interfaces/key-store";
 import { usePromise } from "@notesnook/common";
 import { AuthProps } from "./views/auth";
 import { loadDatabase } from "./hooks/use-database";
@@ -55,7 +54,6 @@ export async function startApp(children?: React.ReactNode) {
   try {
     const { Component, props, path, persistence } = await init();
 
-    await useKeyStore.getState().init({ persistence });
 
     root.render(
       <>
