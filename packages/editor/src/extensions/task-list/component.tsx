@@ -51,7 +51,6 @@ export function TaskListComponent(
     currencySymbol = "₹",
     showCurrency = true
   } = node.attrs;
-  const checked = stats.total > 0 && stats.total === stats.checked;
   const summary = useMemo(
     () => getExpenseSummary(node),
     [node, node.textContent]
@@ -208,39 +207,6 @@ export function TaskListComponent(
           }}
         >
           <Flex sx={{ alignItems: "center", gap: 2, flex: "1 1 180px", minWidth: 0 }}>
-            {editor.isEditable ? (
-              <Button
-                type="button"
-                aria-label={checked ? "Uncheck all tasks" : "Check all tasks"}
-                title="Toggle all tasks"
-                onClick={() => {
-                  const parentPos = getPos();
-                  editor.commands.command(({ tr }) => {
-                    const current = tr.doc.nodeAt(parentPos);
-                    if (!current) return false;
-                    toggleChildren(tr, current, !checked, parentPos);
-                    return true;
-                  });
-                }}
-                sx={{
-                  width: 18,
-                  height: 18,
-                  p: 0,
-                  flexShrink: 0,
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  border: "2px solid #059669",
-                  borderRadius: "4px",
-                  bg: checked ? "#059669" : "#fff",
-                  color: "#fff",
-                  cursor: "pointer",
-                  svg: { width: 13, height: 13 }
-                }}
-              >
-                {checked ? <Icon path={Icons.check} color="#fff" size="small" /> : null}
-              </Button>
-            ) : null}
             <Input
               readOnly={!editor.isEditable || readonly}
               value={title ?? "Expense Checklist"}
