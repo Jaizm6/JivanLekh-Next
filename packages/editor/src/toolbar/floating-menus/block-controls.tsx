@@ -188,7 +188,7 @@ const controlButtonStyle: CSSProperties = {
   width: 25
 };
 
-const menuButtonStyle: React.CSSProperties = {
+const menuButtonStyle: CSSProperties = {
   background: "transparent",
   border: 0,
   borderRadius: 5,
