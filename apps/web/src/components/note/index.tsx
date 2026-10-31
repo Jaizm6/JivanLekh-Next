@@ -171,14 +171,15 @@ function useNoteChecklistProgress(
   compact?: boolean,
   locked?: boolean
 ) {
-  const key = `${note.contentId || note.id}:${note.dateModified}`;
+  const contentId = note.contentId;
+  const key = `${contentId || note.id}:${note.dateModified}`;
   const [snapshot, setSnapshot] = React.useState<ChecklistProgressSnapshot>({
     key: "",
     progress: null
   });
 
   React.useEffect(() => {
-    if (!compact || locked || !note.contentId) {
+    if (!compact || locked || !contentId) {
       setSnapshot({ key, progress: null });
       return;
     }
@@ -193,7 +194,7 @@ function useNoteChecklistProgress(
 
     let cancelled = false;
     db.content
-      .get(note.contentId)
+      .get(contentId)
       .then((content) => {
         if (cancelled) return;
 
@@ -218,7 +219,7 @@ function useNoteChecklistProgress(
     return () => {
       cancelled = true;
     };
-  }, [compact, key, locked, note.contentId]);
+  }, [compact, key, locked, contentId]);
 
   return snapshot.key === key ? snapshot.progress : null;
 }
