@@ -54,6 +54,7 @@ type ListItemProps<TItem extends Item, TContext> = {
   onDrop?: (e: React.DragEvent<HTMLDivElement>) => void;
 
   title: string | JSX.Element;
+  titleAccessory?: JSX.Element;
   header?: JSX.Element;
   body?: JSX.Element | string;
   footer?: JSX.Element;
@@ -199,22 +200,53 @@ function ListItem<TItem extends Item, TContext>(
       {!isCompact && props.header}
 
       {typeof props.title === "string" ? (
-        <Text
-          dir="auto"
-          data-test-id={`title`}
-          variant={"body"}
-          sx={{
-            whiteSpace: "pre",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            fontWeight: isCompact ? "body" : "medium",
-            color:
-              selected && heading === "heading" ? `heading-selected` : heading,
-            display: "block"
-          }}
-        >
-          {props.title}
-        </Text>
+        props.titleAccessory ? (
+          <Flex
+            sx={{
+              alignItems: "center",
+              gap: 2,
+              minWidth: 0,
+              width: "100%"
+            }}
+          >
+            <Text
+              dir="auto"
+              data-test-id={`title`}
+              variant={"body"}
+              sx={{
+                whiteSpace: "pre",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                fontWeight: isCompact ? "body" : "medium",
+                color:
+                  selected && heading === "heading" ? `heading-selected` : heading,
+                display: "block",
+                flex: 1,
+                minWidth: 0
+              }}
+            >
+              {props.title}
+            </Text>
+            {props.titleAccessory}
+          </Flex>
+        ) : (
+          <Text
+            dir="auto"
+            data-test-id={`title`}
+            variant={"body"}
+            sx={{
+              whiteSpace: "pre",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              fontWeight: isCompact ? "body" : "medium",
+              color:
+                selected && heading === "heading" ? `heading-selected` : heading,
+              display: "block"
+            }}
+          >
+            {props.title}
+          </Text>
+        )
       ) : (
         props.title
       )}
