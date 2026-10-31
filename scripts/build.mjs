@@ -86,15 +86,19 @@ await Promise.all([
 async function cmd(...command) {
   let p = spawn(command[0], command.slice(1), { shell: true });
   console.time(command.join(" "));
-  await new Promise((resolveFunc) => {
+  await new Promise((resolveFunc, rejectFunc) => {
     p.stdout.on("data", (x) => {
       process.stdout.write(x.toString());
     });
     p.stderr.on("data", (x) => {
       process.stderr.write(x.toString());
     });
+    p.on("error", rejectFunc);
     p.on("exit", (code) => {
-      // console.log(command.join(" "), "exited with code", code);
+      if (code !== 0) {
+        rejectFunc(new Error(`${command.join(" ")} exited with code ${code}`));
+        return;
+      }
       resolveFunc(code);
     });
   });
