@@ -1181,3 +1181,116 @@ del.diffdel {
     min-height: 28px;
   }
 }
+
+ 
+/* Larger, easier-to-grab block handle and visible drag/drop guidance. */
+.jl-block-drag-handle {
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px;
+  min-height: 32px;
+  border-radius: 9px !important;
+  position: relative;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.13);
+}
+
+.jl-block-drag-handle::after {
+  content: "";
+  position: absolute;
+  inset: -7px;
+  border-radius: 13px;
+  cursor: grab;
+}
+
+.jl-block-drag-handle:hover {
+  opacity: 1 !important;
+  background: var(--background-secondary, var(--background)) !important;
+  color: var(--accent) !important;
+  border-color: var(--accent) !important;
+}
+
+.jl-block-controls {
+  align-items: center;
+}
+
+.jl-block-drag-source {
+  opacity: 0.28 !important;
+  outline: 1px dashed var(--accent);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+.jl-block-drag-preview {
+  align-items: center;
+  background: var(--background, #fff);
+  border: 1px solid var(--accent, #4b83e8);
+  border-radius: 10px;
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.2);
+  color: var(--paragraph, #222);
+  display: flex;
+  gap: 10px;
+  max-width: min(360px, calc(100vw - 24px));
+  min-height: 42px;
+  padding: 9px 13px;
+  pointer-events: none;
+  position: fixed;
+  z-index: 1400;
+}
+
+.jl-block-drag-preview-icon {
+  color: var(--accent);
+  flex: 0 0 auto;
+  font-size: 20px;
+  line-height: 1;
+}
+
+.jl-block-drag-preview-text {
+  font-size: 13px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.jl-block-drop-target {
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
+  outline: 1.5px dashed var(--accent);
+  outline-offset: 4px;
+  border-radius: 4px;
+  transition: background-color 100ms ease, outline-color 100ms ease;
+}
+
+.jl-block-drop-indicator {
+  background: var(--accent, #4b83e8);
+  border-radius: 999px;
+  box-shadow: 0 0 0 2px var(--background, #fff), 0 2px 8px rgba(0, 0, 0, 0.2);
+  height: 3px;
+  pointer-events: none;
+  position: fixed;
+  z-index: 1401;
+}
+
+.jl-block-drop-indicator::before {
+  background: var(--accent, #4b83e8);
+  border: 2px solid var(--background, #fff);
+  border-radius: 50%;
+  content: "";
+  height: 9px;
+  left: -3px;
+  position: absolute;
+  top: -5px;
+  width: 9px;
+}
+
+@media (max-width: 640px) {
+  .jl-block-drag-handle {
+    width: 36px !important;
+    height: 36px !important;
+    min-width: 36px;
+    min-height: 36px;
+  }
+
+  .jl-block-drag-preview {
+    max-width: calc(100vw - 24px);
+  }
+}
