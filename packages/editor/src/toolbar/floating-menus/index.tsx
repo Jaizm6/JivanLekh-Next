@@ -21,12 +21,14 @@ import { DesktopOnly } from "../../components/responsive/index.js";
 import { HoverPopupHandler } from "./hover-popup/index.js";
 import { SearchReplaceFloatingMenu } from "./search-replace.js";
 import { SlashCommandFloatingMenu } from "./slash-command.js";
+import { BlockControls } from "./block-controls.js";
 import { FloatingMenuProps } from "./types.js";
 
 export function EditorFloatingMenus(props: FloatingMenuProps) {
   return (
     <>
       <SearchReplaceFloatingMenu {...props} />
+      <BlockControls {...props} />
       <SlashCommandFloatingMenu {...props} />
 
       <DesktopOnly>
