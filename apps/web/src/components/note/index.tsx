@@ -37,7 +37,7 @@ import {
 import { strings } from "@notesnook/intl";
 import { SchemeColors } from "@notesnook/theme";
 import { MenuItem } from "@notesnook/ui";
-import { Flex, Text } from "@theme-ui/components";
+import { Box, Flex, Text } from "@theme-ui/components";
 import React from "react";
 import { db } from "../../common/db";
 import { exportNote, exportNotes } from "../../common/export";
@@ -114,6 +114,216 @@ type NoteProps = NoteResolvedData & {
   compact?: boolean;
 };
 
+type ChecklistCount = { checked: number; total: number };
+type NoteChecklistProgress = {
+  expense?: ChecklistCount;
+  checklist?: ChecklistCount;
+};
+type ChecklistProgressSnapshot = {
+  key: string;
+  progress: NoteChecklistProgress | null;
+};
+
+const checklistProgressCache = new Map<
+  string,
+  NoteChecklistProgress | null
+>();
+
+function getNoteChecklistProgress(html: string): NoteChecklistProgress | null {
+  const parsed = new DOMParser().parseFromString(html, "text/html");
+
+  const topLevelLists = (selector: string) =>
+    Array.from(parsed.querySelectorAll(selector)).filter(
+      (list) => !list.parentElement?.closest(selector)
+    );
+
+  const countItems = (
+    lists: Element[],
+    itemSelector: string
+  ): ChecklistCount => {
+    const items = lists.flatMap((list) =>
+      Array.from(list.querySelectorAll(itemSelector))
+    );
+    return {
+      checked: items.filter((item) => item.classList.contains("checked"))
+        .length,
+      total: items.length
+    };
+  };
+
+  const expenseLists = topLevelLists("ul.checklist");
+  const checklistLists = topLevelLists("ul.simple-checklist");
+
+  if (!expenseLists.length && !checklistLists.length) return null;
+
+  return {
+    expense: expenseLists.length
+      ? countItems(expenseLists, "li.checklist--item")
+      : undefined,
+    checklist: checklistLists.length
+      ? countItems(checklistLists, "li.simple-checklist--item")
+      : undefined
+  };
+}
+
+function useNoteChecklistProgress(
+  note: NoteType,
+  compact?: boolean,
+  locked?: boolean
+) {
+  const key = `${note.contentId || note.id}:${note.dateModified}`;
+  const [snapshot, setSnapshot] = React.useState<ChecklistProgressSnapshot>({
+    key: "",
+    progress: null
+  });
+
+  React.useEffect(() => {
+    if (!compact || locked || !note.contentId) {
+      setSnapshot({ key, progress: null });
+      return;
+    }
+
+    if (checklistProgressCache.has(key)) {
+      setSnapshot({
+        key,
+        progress: checklistProgressCache.get(key) ?? null
+      });
+      return;
+    }
+
+    let cancelled = false;
+    db.content
+      .get(note.contentId)
+      .then((content) => {
+        if (cancelled) return;
+
+        const progress =
+          content && !content.locked && typeof content.data === "string"
+            ? getNoteChecklistProgress(content.data)
+            : null;
+
+        checklistProgressCache.set(key, progress);
+        // Keep the cache bounded as notes are edited over time.
+        if (checklistProgressCache.size > 250) {
+          const oldestKey = checklistProgressCache.keys().next().value;
+          if (oldestKey) checklistProgressCache.delete(oldestKey);
+        }
+
+        setSnapshot({ key, progress });
+      })
+      .catch(() => {
+        if (!cancelled) setSnapshot({ key, progress: null });
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [compact, key, locked, note.contentId]);
+
+  return snapshot.key === key ? snapshot.progress : null;
+}
+
+function ChecklistProgressLine({
+  kind,
+  count
+}: {
+  kind: "expense" | "checklist";
+  count: ChecklistCount;
+}) {
+  const isExpense = kind === "expense";
+  const color = isExpense ? "#27966A" : "#3984D6";
+  const percent =
+    count.total > 0
+      ? Math.min(100, (count.checked / count.total) * 100)
+      : 0;
+  const label = `${isExpense ? "Expense checklist" : "Checklist"}: ${count.checked} of ${count.total} completed`;
+
+  return (
+    <Flex
+      alignItems="center"
+      aria-label={label}
+      title={label}
+      sx={{ gap: "3px", height: "8px", whiteSpace: "nowrap" }}
+    >
+      <Text
+        as="span"
+        sx={{
+          color,
+          fontSize: "10px",
+          fontWeight: "bold",
+          lineHeight: 1,
+          width: "9px",
+          textAlign: "center"
+        }}
+      >
+        {isExpense ? "₹" : "☑"}
+      </Text>
+      <Box
+        sx={{
+          backgroundColor: "var(--border, #d1d5db)",
+          borderRadius: "999px",
+          height: "3px",
+          overflow: "hidden",
+          width: "26px"
+        }}
+      >
+        <Box
+          sx={{
+            backgroundColor: color,
+            borderRadius: "999px",
+            height: "100%",
+            width: `${percent}%`
+          }}
+        />
+      </Box>
+      <Text
+        as="span"
+        sx={{
+          color: "paragraph-secondary",
+          fontSize: "9px",
+          lineHeight: 1,
+          minWidth: "19px",
+          textAlign: "right",
+          fontVariantNumeric: "tabular-nums"
+        }}
+      >
+        {count.checked}/{count.total}
+      </Text>
+    </Flex>
+  );
+}
+
+function NoteChecklistProgress({
+  progress
+}: {
+  progress: NoteChecklistProgress | null;
+}) {
+  if (!progress || (!progress.expense && !progress.checklist)) return null;
+
+  return (
+    <Flex
+      role="group"
+      aria-label="Note checklist progress"
+      data-test-id="note-checklist-progress"
+      sx={{
+        alignItems: "flex-end",
+        flexDirection: "column",
+        flexShrink: 0,
+        gap: "2px",
+        justifyContent: "center",
+        minWidth: "56px"
+      }}
+    >
+      {progress.expense ? (
+        <ChecklistProgressLine kind="expense" count={progress.expense} />
+      ) : null}
+      {progress.checklist ? (
+        <ChecklistProgressLine kind="checklist" count={progress.checklist} />
+      ) : null}
+    </Flex>
+  );
+}
+
 function Note(props: NoteProps) {
   const {
     tags,
@@ -132,6 +342,7 @@ function Note(props: NoteProps) {
   const isOpened = useEditorStore((store) => store.isNoteOpen(item.id));
   const primary: SchemeColors = color ? color.colorCode : "accent-selected";
   const dateFormat = useSettingStore((store) => store.dateFormat);
+  const checklistProgress = useNoteChecklistProgress(note, compact, locked);
 
   return (
     <ListItem
@@ -140,6 +351,11 @@ function Note(props: NoteProps) {
       isCompact={compact}
       item={note}
       title={note.title}
+      titleAccessory={
+        compact && checklistProgress ? (
+          <NoteChecklistProgress progress={checklistProgress} />
+        ) : undefined
+      }
       body={note.headline as string}
       onKeyPress={async (e) => {
         if (e.key === "Delete") {
@@ -305,6 +521,7 @@ export default React.memo(Note, function (prevProps, nextProps) {
     prevProps.compact === nextProps.compact &&
     prevProps.date === nextProps.date &&
     prevItem.dateModified === nextItem.dateModified &&
+    prevItem.contentId === nextItem.contentId &&
     prevProps.notebooks?.dateEdited === nextProps.notebooks?.dateEdited &&
     prevProps.tags?.dateEdited === nextProps.tags?.dateEdited &&
     prevProps.reminder?.dateModified === nextProps.reminder?.dateModified &&
