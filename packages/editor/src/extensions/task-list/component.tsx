@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 */
 
-import { Box, Flex, Input, Text } from "@theme-ui/components";
+import { Box, Button, Flex, Input, Select, Text } from "@theme-ui/components";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ToolButton } from "../../toolbar/components/tool-button.js";
 import { ReactNodeViewProps } from "../react/index.js";
@@ -209,7 +209,7 @@ export function TaskListComponent(
         >
           <Flex sx={{ alignItems: "center", gap: 2, flex: "1 1 180px", minWidth: 0 }}>
             {editor.isEditable ? (
-              <Box
+              <Button
                 as="button"
                 type="button"
                 aria-label={checked ? "Uncheck all tasks" : "Check all tasks"}
@@ -240,7 +240,7 @@ export function TaskListComponent(
                 }}
               >
                 {checked ? <Icon path={Icons.check} color="#fff" size="small" /> : null}
-              </Box>
+              </Button>
             ) : null}
             <Input
               readOnly={!editor.isEditable || readonly}
@@ -352,27 +352,27 @@ export function TaskListComponent(
                       <Flex sx={{ alignItems: "center", justifyContent: "space-between", gap: 2, py: 1 }}>
                         <Text sx={{ fontSize: "12px" }}>Show Currency</Text>
                         <Flex sx={{ bg: "background-secondary", p: "2px", borderRadius: "6px", gap: "2px" }}>
-                          <Box
+                          <Button
                             as="button"
                             type="button"
                             onClick={() => updateExpenseSettings({ showCurrency: true })}
                             sx={{ border: 0, borderRadius: "4px", px: 2, py: "3px", bg: showCurrency ? "background" : "transparent", color: showCurrency ? "paragraph" : "paragraph-secondary", boxShadow: showCurrency ? "0 1px 2px rgba(0,0,0,.08)" : "none", fontSize: "11px", fontWeight: 600 }}
                           >
                             Yes
-                          </Box>
-                          <Box
+                          </Button>
+                          <Button
                             as="button"
                             type="button"
                             onClick={() => updateExpenseSettings({ showCurrency: false })}
                             sx={{ border: 0, borderRadius: "4px", px: 2, py: "3px", bg: !showCurrency ? "background" : "transparent", color: !showCurrency ? "paragraph" : "paragraph-secondary", boxShadow: !showCurrency ? "0 1px 2px rgba(0,0,0,.08)" : "none", fontSize: "11px", fontWeight: 600 }}
                           >
                             No
-                          </Box>
+                          </Button>
                         </Flex>
                       </Flex>
                       <Flex sx={{ alignItems: "center", justifyContent: "space-between", gap: 2, py: 1 }}>
                         <Text sx={{ fontSize: "12px" }}>Currency Symbol</Text>
-                        <Box
+                        <Select
                           as="select"
                           value={currencySymbol}
                           disabled={!showCurrency}
@@ -384,7 +384,7 @@ export function TaskListComponent(
                               {currency.label}
                             </option>
                           ))}
-                        </Box>
+                        </Select>
                       </Flex>
                       <Box sx={{ height: "1px", bg: "border", my: 1 }} />
                       <Text sx={{ fontSize: "10px", fontWeight: 700, letterSpacing: ".6px", color: "paragraph-secondary", textTransform: "uppercase", mb: 1 }}>
@@ -398,7 +398,7 @@ export function TaskListComponent(
                         { id: "checkAll", label: "Check all tasks" },
                         { id: "deleteChecked", label: "Delete checked tasks", danger: true }
                       ].map((action) => (
-                        <Box
+                        <Button
                           key={action.id}
                           as="button"
                           type="button"
@@ -420,7 +420,7 @@ export function TaskListComponent(
                           }}
                         >
                           {action.label}
-                        </Box>
+                        </Button>
                       ))}
                     </Box>
                   ) : null}
@@ -488,7 +488,7 @@ export function TaskListComponent(
           }}
         >
           {!readonly && editor.isEditable ? (
-            <Box
+            <Button
               as="button"
               type="button"
               onClick={addTask}
@@ -510,7 +510,7 @@ export function TaskListComponent(
             >
               <Icon path={Icons.plus} size="small" />
               Add task or expense
-            </Box>
+            </Button>
           ) : <Box />}
           <Flex sx={{ alignItems: "center", gap: 2, flexWrap: "wrap", fontFamily: "monospace", fontSize: "11px" }}>
             <Text sx={{ color: "paragraph-secondary", fontSize: "11px" }}>
