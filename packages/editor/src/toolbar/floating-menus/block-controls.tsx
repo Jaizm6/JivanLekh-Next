@@ -259,20 +259,21 @@ export function BlockControls({ editor }: { editor: Editor }) {
       // active. The drag controller owns the pointer until it is released.
       if (dragCleanupRef.current) return;
 
-      if (target instanceof Node && editor.view.dom.contains(target)) {
-        updateActive(getBlockAt(editor, event.clientX, event.clientY));
-        return;
-      }
-
-      // Keep the controls alive while the pointer crosses the small gutter
-      // between the text and its handle. Without this bridge the handle
-      // vanishes just before the pointer can reach it.
+      // Keep the controls alive while the pointer crosses the editor's
+      // empty gutter and the small gap between the block and its handle.
       const current = activeRef.current;
       const nearCurrentBlock = current &&
         event.clientX >= current.left - 82 &&
         event.clientX <= current.left + current.width + 16 &&
         event.clientY >= current.top - 14 &&
         event.clientY <= current.top + current.height + 14;
+
+      if (target instanceof Node && editor.view.dom.contains(target)) {
+        const hoveredBlock = getBlockAt(editor, event.clientX, event.clientY);
+        if (hoveredBlock) updateActive(hoveredBlock);
+        else if (!nearCurrentBlock) updateActive(null);
+        return;
+      }
 
       if (!menuOpenRef.current && !nearCurrentBlock) updateActive(null);
     };
@@ -423,7 +424,7 @@ export function BlockControls({ editor }: { editor: Editor }) {
         const previewText = document.createElement("span");
         previewText.className = "jl-block-drag-preview-text";
         const blockText = (target.node.textContent || "")
-          .replace(/\\s+/g, " ")
+          .replace(/\s+/g, " ")
           .trim();
         const blockType = target.node.type.name.replace(/([A-Z])/g, " $1");
         previewText.textContent = blockText
