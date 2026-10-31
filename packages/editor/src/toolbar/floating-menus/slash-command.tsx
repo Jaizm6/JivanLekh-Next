@@ -285,7 +285,28 @@ export function SlashCommandFloatingMenu({ editor }: FloatingMenuProps) {
                   onClick={() => selectCommand(command)}
                   sx={{ width: "100%", display: "flex", alignItems: "center", textAlign: "left", px: 2, py: 2, borderRadius: "small", bg: selectedIndex === index ? "background-selected" : "transparent" }}
                 >
-                  <Icon path={command.icon} color={command.color} size={18} sx={{ mr: 2 }} />
+                  {command.id === "task-list" ? (
+                    <svg
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      strokeWidth="1.8"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      aria-hidden="true"
+                      style={{ flexShrink: 0, marginRight: 8 }}
+                    >
+                      <path
+                        d="M21 11v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2"
+                        stroke="#2563eb"
+                      />
+                      <path d="M13 6.5H8l2.5 2.5L8 11.5h5" stroke="#ef4444" />
+                      <path d="m6.5 15 3.5 3.5 13.5-13" stroke="#2563eb" />
+                    </svg>
+                  ) : (
+                    <Icon path={command.icon} color={command.color} size={18} sx={{ mr: 2 }} />
+                  )}
                   <Box sx={{ minWidth: 0, flex: 1 }}>
                     <Text variant="body" sx={{ display: "block" }}>
                       {command.title}
