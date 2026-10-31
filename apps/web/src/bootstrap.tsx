@@ -26,6 +26,7 @@ import {
 } from "./utils/feature-check";
 import { initializeLogger, logger } from "./utils/logger";
 import { shouldShowWrapped } from "./utils/should-show-wrapped";
+import { useKeyStore } from "./interfaces/key-store";
 
 type Route<TProps = null> = {
   component: () => Promise<{
@@ -189,14 +190,15 @@ export async function init() {
 
   const { path, route } = getRoute();
 
-  const [{ default: Component }] = await Promise.all([
-    route.component(),
-    initializeLogger()
-  ]);
-
   const persistence = isAccountRecoveryRoute(path)
     ? ("memory" as const)
     : ("db" as const);
+
+  const [{ default: Component }] = await Promise.all([
+    route.component(),
+    initializeLogger(),
+    useKeyStore.getState().init({ persistence })
+  ]);
 
   logger.info(
     `Initializing key store with persistence: ${persistence} for path: ${path}`
