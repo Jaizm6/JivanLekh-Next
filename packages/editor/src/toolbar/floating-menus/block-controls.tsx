@@ -6,6 +6,7 @@ ProseMirror/Tiptap, so existing note content and block IDs stay compatible.
 */
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import type { CSSProperties, PointerEvent as ReactPointerEvent } from "react";
 import { Node as ProseMirrorNode } from "@tiptap/pm/model";
 import { NodeSelection, TextSelection } from "@tiptap/pm/state";
 import { Editor } from "../../types.js";
@@ -173,7 +174,7 @@ function convertTextBlock(editor: Editor, pos: number, typeName: string, level?:
   }
 }
 
-const controlButtonStyle: React.CSSProperties = {
+const controlButtonStyle: CSSProperties = {
   alignItems: "center",
   background: "var(--background, #fff)",
   border: "1px solid var(--border, #ddd)",
@@ -247,6 +248,18 @@ export function BlockControls({ editor }: { editor: Editor }) {
       }
     };
 
+    const onPointerDownInEditor = (event: PointerEvent) => {
+      const target = event.target;
+      if (
+        target instanceof Node &&
+        editor.view.dom.contains(target) &&
+        !(target instanceof Element && target.closest(".jl-block-controls, .jl-block-menu"))
+      ) {
+        pointerRef.current = { x: event.clientX, y: event.clientY };
+        updateActive(getBlockAt(editor, event.clientX, event.clientY));
+      }
+    };
+
     const onScroll = () => {
       if (menuOpenRef.current) return;
       refreshAtPointer();
@@ -264,12 +277,14 @@ export function BlockControls({ editor }: { editor: Editor }) {
     };
 
     document.addEventListener("pointermove", onPointerMove, true);
+    document.addEventListener("pointerdown", onPointerDownInEditor, true);
     document.addEventListener("pointerdown", onOutsidePointerDown, true);
     window.addEventListener("scroll", onScroll, true);
     editor.on("transaction", refreshAtPointer);
 
     return () => {
       document.removeEventListener("pointermove", onPointerMove, true);
+      document.removeEventListener("pointerdown", onPointerDownInEditor, true);
       document.removeEventListener("pointerdown", onOutsidePointerDown, true);
       window.removeEventListener("scroll", onScroll, true);
       editor.off("transaction", refreshAtPointer);
@@ -283,7 +298,7 @@ export function BlockControls({ editor }: { editor: Editor }) {
   };
 
   const beginDrag = (
-    event: React.PointerEvent<HTMLButtonElement>,
+    event: ReactPointerEvent<HTMLButtonElement>,
     target: BlockTarget
   ) => {
     if (event.button !== 0) return;
@@ -332,7 +347,7 @@ export function BlockControls({ editor }: { editor: Editor }) {
 
       const insertBefore =
         upEvent.clientY <
-        dropTarget.top + Math.min(dropTarget.height / 2, 36);
+        dropTarget.top + dropTarget.height / 2;
       const destination = insertBefore
         ? dropTarget.pos
         : dropTarget.pos + dropTarget.node.nodeSize;
@@ -380,7 +395,10 @@ export function BlockControls({ editor }: { editor: Editor }) {
         <button
           aria-label="Add block below"
           className="jl-block-control-button"
-          onClick={() => insertParagraphAfter(editor, activeBlock.pos)}
+          onClick={() => {
+            setMenuOpen(false);
+            insertParagraphAfter(editor, activeBlock.pos);
+          }}
           style={controlButtonStyle}
           title="Add block below"
           type="button"
@@ -393,6 +411,12 @@ export function BlockControls({ editor }: { editor: Editor }) {
           aria-label="Drag block or open block menu"
           className="jl-block-control-button jl-block-drag-handle"
           onPointerDown={(event) => beginDrag(event, activeBlock)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              openBlockMenu(activeBlock);
+            }
+          }}
           style={{ ...controlButtonStyle, cursor: "grab", touchAction: "none" }}
           title="Drag to move; click for block actions"
           type="button"
@@ -411,6 +435,9 @@ export function BlockControls({ editor }: { editor: Editor }) {
         <div
           aria-label="Block actions"
           className="jl-block-menu"
+          onKeyDown={(event) => {
+            if (event.key === "Escape") setMenuOpen(false);
+          }}
           role="menu"
           style={{
             background: "var(--background, #fff)",
