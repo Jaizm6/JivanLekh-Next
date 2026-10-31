@@ -64,7 +64,7 @@ export function SlashCommandFloatingMenu({ editor }: FloatingMenuProps) {
         run: (editor, range) => editor.chain().focus().deleteRange(range).setParagraph().run()
       },
       ...Array.from({ length: 6 }, (_, index) => {
-        const level = index + 1;
+        const level = (index + 1) as 1 | 2 | 3 | 4 | 5 | 6;
         return {
           id: `h${level}`, title: `Heading ${level}`, description: `Section heading · H${level}`,
           aliases: [`h${level}`, `heading ${level}`], icon: Icons.heading, color: COMMAND_COLORS.heading,
