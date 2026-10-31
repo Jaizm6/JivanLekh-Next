@@ -254,11 +254,27 @@ export function BlockControls({ editor }: { editor: Editor }) {
         return;
 
       pointerRef.current = { x: event.clientX, y: event.clientY };
+
+      // Do not let hover tracking move or unmount the handle while a drag is
+      // active. The drag controller owns the pointer until it is released.
+      if (dragCleanupRef.current) return;
+
       if (target instanceof Node && editor.view.dom.contains(target)) {
         updateActive(getBlockAt(editor, event.clientX, event.clientY));
-      } else if (!menuOpenRef.current && !dragCleanupRef.current) {
-        updateActive(null);
+        return;
       }
+
+      // Keep the controls alive while the pointer crosses the small gutter
+      // between the text and its handle. Without this bridge the handle
+      // vanishes just before the pointer can reach it.
+      const current = activeRef.current;
+      const nearCurrentBlock = current &&
+        event.clientX >= current.left - 82 &&
+        event.clientX <= current.left + current.width + 16 &&
+        event.clientY >= current.top - 14 &&
+        event.clientY <= current.top + current.height + 14;
+
+      if (!menuOpenRef.current && !nearCurrentBlock) updateActive(null);
     };
 
     const onPointerDownInEditor = (event: PointerEvent) => {
@@ -320,14 +336,71 @@ export function BlockControls({ editor }: { editor: Editor }) {
 
     const startX = event.clientX;
     const startY = event.clientY;
-    const originalOpacity = target.dom.style.opacity;
     let dragging = false;
+    let preview: HTMLDivElement | null = null;
+    let indicator: HTMLDivElement | null = null;
+    let highlightedBlock: HTMLElement | null = null;
+    let dropTarget: { target: BlockTarget; insertBefore: boolean } | null = null;
+
+    const clearDropTarget = () => {
+      highlightedBlock?.classList.remove("jl-block-drop-target");
+      highlightedBlock = null;
+      dropTarget = null;
+      indicator?.remove();
+      indicator = null;
+    };
+
+    const showDragFeedback = (moveEvent: PointerEvent) => {
+      if (!preview) return;
+
+      const previewLeft = Math.max(
+        8,
+        Math.min(moveEvent.clientX + 18, window.innerWidth - 330)
+      );
+      const previewTop = Math.max(
+        8,
+        Math.min(moveEvent.clientY + 18, window.innerHeight - 64)
+      );
+      preview.style.left = `${previewLeft}px`;
+      preview.style.top = `${previewTop}px`;
+
+      const candidate = getBlockAt(editor, moveEvent.clientX, moveEvent.clientY);
+      if (!candidate || candidate.pos === target.pos) {
+        clearDropTarget();
+        return;
+      }
+
+      const insertBefore =
+        moveEvent.clientY < candidate.top + candidate.height / 2;
+
+      if (highlightedBlock !== candidate.dom) {
+        highlightedBlock?.classList.remove("jl-block-drop-target");
+        highlightedBlock = candidate.dom;
+        highlightedBlock.classList.add("jl-block-drop-target");
+      }
+
+      dropTarget = { target: candidate, insertBefore };
+      if (!indicator) {
+        indicator = document.createElement("div");
+        indicator.className = "jl-block-drop-indicator";
+        document.body.appendChild(indicator);
+      }
+
+      indicator.style.left = `${Math.round(candidate.left)}px`;
+      indicator.style.top = `${Math.round(
+        (insertBefore ? candidate.top : candidate.top + candidate.height) - 2
+      )}px`;
+      indicator.style.width = `${Math.max(48, Math.round(candidate.width))}px`;
+    };
 
     const cleanup = () => {
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerup", onUp);
       window.removeEventListener("pointercancel", onCancel);
-      target.dom.style.opacity = originalOpacity;
+      target.dom.classList.remove("jl-block-drag-source");
+      preview?.remove();
+      preview = null;
+      clearDropTarget();
       document.body.style.removeProperty("user-select");
       dragCleanupRef.current = null;
     };
@@ -338,32 +411,52 @@ export function BlockControls({ editor }: { editor: Editor }) {
         Math.hypot(moveEvent.clientX - startX, moveEvent.clientY - startY) > 5
       ) {
         dragging = true;
-        target.dom.style.opacity = "0.35";
+        target.dom.classList.add("jl-block-drag-source");
         document.body.style.setProperty("user-select", "none");
         setMenuOpen(false);
+
+        preview = document.createElement("div");
+        preview.className = "jl-block-drag-preview";
+        const previewIcon = document.createElement("span");
+        previewIcon.className = "jl-block-drag-preview-icon";
+        previewIcon.textContent = "⠿";
+        const previewText = document.createElement("span");
+        previewText.className = "jl-block-drag-preview-text";
+        const blockText = (target.node.textContent || "")
+          .replace(/\\s+/g, " ")
+          .trim();
+        const blockType = target.node.type.name.replace(/([A-Z])/g, " $1");
+        previewText.textContent = blockText
+          ? `${blockType}: ${blockText.slice(0, 90)}`
+          : blockType;
+        preview.append(previewIcon, previewText);
+        document.body.appendChild(preview);
       }
-      if (dragging) moveEvent.preventDefault();
+
+      if (dragging) {
+        moveEvent.preventDefault();
+        showDragFeedback(moveEvent);
+      }
     };
 
     const onUp = (upEvent: PointerEvent) => {
+      const finalDrop = dropTarget;
       cleanup();
+
       if (!dragging) {
         openBlockMenu(target);
         return;
       }
 
-      const dropTarget = getBlockAt(editor, upEvent.clientX, upEvent.clientY);
-      if (!dropTarget || dropTarget.pos === target.pos) {
+      if (!finalDrop || finalDrop.target.pos === target.pos) {
         refreshAtPointer();
         return;
       }
 
-      const insertBefore =
-        upEvent.clientY <
-        dropTarget.top + dropTarget.height / 2;
-      const destination = insertBefore
-        ? dropTarget.pos
-        : dropTarget.pos + dropTarget.node.nodeSize;
+      const destination = finalDrop.insertBefore
+        ? finalDrop.target.pos
+        : finalDrop.target.pos + finalDrop.target.node.nodeSize;
+
       moveBlock(editor, target.pos, destination);
       pointerRef.current = { x: upEvent.clientX, y: upEvent.clientY };
       refreshAtPointer();
@@ -389,7 +482,7 @@ export function BlockControls({ editor }: { editor: Editor }) {
 
   if (!editor.isEditable || !activeBlock) return null;
 
-  const menuLeft = Math.max(8, activeBlock.left - 54);
+  const menuLeft = Math.max(8, activeBlock.left - 68);
   const menuTop = Math.max(8, activeBlock.top);
 
   return (
@@ -430,11 +523,11 @@ export function BlockControls({ editor }: { editor: Editor }) {
               openBlockMenu(activeBlock);
             }
           }}
-          style={{ ...controlButtonStyle, cursor: "grab", touchAction: "none" }}
+          style={{ ...controlButtonStyle, cursor: "grab", touchAction: "none", width: 32, height: 32 }}
           title="Drag to move; click for block actions"
           type="button"
         >
-          <svg aria-hidden="true" height="16" viewBox="0 0 16 16" width="16">
+          <svg aria-hidden="true" height="18" viewBox="0 0 16 16" width="18">
             {[4, 8, 12].flatMap((x) =>
               [4, 8, 12].map((y) => (
                 <circle cx={x} cy={y} fill="currentColor" key={x + "-" + y} r="1.15" />
