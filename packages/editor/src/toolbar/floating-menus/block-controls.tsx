@@ -29,12 +29,25 @@ function getBlockAt(editor: Editor, x: number, y: number): BlockTarget | null {
 
   try {
     const $pos = editor.state.doc.resolve(hit.pos);
-    if ($pos.depth < 1) return null;
+    let pos: number;
+    let node: ProseMirrorNode;
 
-    // Controls operate on the top-level block, even when the pointer is
-    // inside a nested list item, table cell, or callout.
-    const pos = $pos.before(1);
-    const node = $pos.node(1);
+    if ($pos.depth >= 1) {
+      // Controls operate on the top-level block, even when the pointer is
+      // inside a nested list item, table cell, or callout.
+      pos = $pos.before(1);
+      node = $pos.node(1);
+    } else if (hit.inside >= 0) {
+      // Atomic node views (images and some attachments) can report the
+      // containing node through posAtCoords.inside without a deeper cursor.
+      pos = hit.inside;
+      const insideNode = editor.state.doc.nodeAt(pos);
+      if (!insideNode) return null;
+      node = insideNode;
+    } else {
+      return null;
+    }
+
     if (!node.isBlock) return null;
 
     const dom = editor.view.nodeDOM(pos);
