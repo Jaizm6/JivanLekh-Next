@@ -139,6 +139,9 @@ export const TaskListNode = TaskList.extend({
           const { $from, $to } = state.selection;
 
           const parentAttributes = getParentAttributes(this.editor, true, true);
+          const taskListAttributes = this.editor.getAttributes(
+            this.name
+          ) as Partial<TaskListAttributes>;
           chain()
             .toggleList(
               this.name,
@@ -146,9 +149,9 @@ export const TaskListNode = TaskList.extend({
               true,
               {
                 ...parentAttributes,
-                title: parentAttributes.title ?? "Expense Checklist",
-                currencySymbol: parentAttributes.currencySymbol ?? "₹",
-                showCurrency: parentAttributes.showCurrency ?? true
+                title: taskListAttributes.title ?? "Expense Checklist",
+                currencySymbol: taskListAttributes.currencySymbol ?? "₹",
+                showCurrency: taskListAttributes.showCurrency ?? true
               }
             )
             .run();
