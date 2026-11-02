@@ -150,9 +150,9 @@ function ListItem<TItem extends Item, TContext>(
       sx={{
         px: 1,
         py: isCompact ? 0 : 1,
-        pr: isCompact ? 10 : 0,
-        height: isCompact ? (props.titleAccessory ? "auto" : 25) : "inherit",
-        minHeight: isCompact && props.titleAccessory ? "25px" : undefined,
+        pr: isCompact ? (props.titleAccessory ? 2 : 10) : 0,
+        height: isCompact ? (props.titleAccessory ? "36px" : 25) : "inherit",
+        minHeight: isCompact && props.titleAccessory ? "36px" : undefined,
         cursor: "pointer",
         position: "relative",
         overflow: "hidden",
@@ -207,7 +207,9 @@ function ListItem<TItem extends Item, TContext>(
               alignItems: "center",
               gap: 2,
               minWidth: 0,
-              width: "100%"
+              flex: isCompact ? "1 1 auto" : undefined,
+              width: isCompact ? "auto" : "100%",
+              overflow: "hidden"
             }}
           >
             <Text
