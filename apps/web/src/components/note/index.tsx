@@ -269,13 +269,11 @@ function useNoteChecklistProgress(
 function ChecklistProgressMetric({
   kind,
   count,
-  currency,
-  compact = false
+  currency
 }: {
   kind: "expense" | "checklist";
   count: ChecklistCount;
   currency?: string;
-  compact?: boolean;
 }) {
   const isExpense = kind === "expense";
   const color = isExpense
@@ -288,9 +286,9 @@ function ChecklistProgressMetric({
     count.total > 0
       ? Math.min(100, (count.checked / count.total) * 100)
       : 0;
-  const ringSize = compact ? 10 : 12;
+  const ringSize = 10;
   const center = ringSize / 2;
-  const radius = compact ? 4 : 5;
+  const radius = 4;
   const circumference = 2 * Math.PI * radius;
   const progressLength = (percent / 100) * circumference;
   const symbol = isExpense ? currency || "¤" : "✓";
@@ -304,8 +302,13 @@ function ChecklistProgressMetric({
       title={label}
       sx={{
         display: "inline-flex",
+        alignSelf: "center",
+        alignItems: "center",
+        justifyContent: "center",
         gap: "3px",
-        height: compact ? "15px" : "18px",
+        height: "16px",
+        minHeight: "16px",
+        maxHeight: "16px",
         px: "5px",
         py: 0,
         borderRadius: "9999px",
@@ -313,19 +316,22 @@ function ChecklistProgressMetric({
         boxSizing: "border-box",
         flexShrink: 0,
         whiteSpace: "nowrap",
-        lineHeight: 1
+        lineHeight: 1,
+        verticalAlign: "middle"
       }}
     >
       <Box
         as="svg"
         role="img"
         aria-label={`${Math.round(percent)}% complete`}
-        viewBox={`0 0 ${ringSize} ${ringSize}`}
+        viewBox="0 0 10 10"
         sx={{
           display: "block",
-          width: `${ringSize}px`,
-          height: `${ringSize}px`,
-          flexShrink: 0
+          alignSelf: "center",
+          width: "10px",
+          height: "10px",
+          flex: "0 0 10px",
+          verticalAlign: "middle"
         }}
       >
         <circle
@@ -334,7 +340,7 @@ function ChecklistProgressMetric({
           r={radius}
           fill="none"
           stroke="light-dark(#CBD5E1, rgba(255, 255, 255, 0.24))"
-          strokeWidth={compact ? 1.3 : 1.6}
+          strokeWidth="1.3"
         />
         <circle
           cx={center}
@@ -342,39 +348,49 @@ function ChecklistProgressMetric({
           r={radius}
           fill="none"
           stroke={color}
-          strokeWidth={compact ? 1.3 : 1.6}
+          strokeWidth="1.3"
           strokeDasharray={`${progressLength} ${circumference}`}
           strokeLinecap="round"
           transform={`rotate(-90 ${center} ${center})`}
         />
       </Box>
-      <Text
+      <Box
         as="span"
         sx={{
-          display: "block",
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          alignSelf: "center",
+          height: "100%",
           color,
           fontSize: "10px",
           fontWeight: "medium",
           lineHeight: 1,
-          flexShrink: 0
+          flex: "0 0 auto",
+          verticalAlign: "middle"
         }}
       >
         {symbol}
-      </Text>
-      <Text
+      </Box>
+      <Box
         as="span"
         sx={{
-          display: "block",
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          alignSelf: "center",
+          height: "100%",
           color,
           fontSize: "10px",
           fontWeight: "medium",
           lineHeight: 1,
           fontVariantNumeric: "tabular-nums",
-          flexShrink: 0
+          flex: "0 0 auto",
+          verticalAlign: "middle"
         }}
       >
         {count.checked}/{count.total}
-      </Text>
+      </Box>
     </Flex>
   );
 }
@@ -399,10 +415,13 @@ function NoteChecklistProgress({
         justifyContent: "center",
         alignItems: hasBoth ? "flex-end" : "center",
         gap: hasBoth ? "2px" : 0,
-        height: hasBoth ? "32px" : "18px",
+        height: hasBoth ? "34px" : "16px",
+        minHeight: hasBoth ? "34px" : "16px",
+        maxHeight: hasBoth ? "34px" : "16px",
         flexShrink: 0,
         whiteSpace: "nowrap",
-        lineHeight: 1
+        lineHeight: 1,
+        alignSelf: "center"
       }}
     >
       {progress.expense ? (
@@ -410,14 +429,12 @@ function NoteChecklistProgress({
           kind="expense"
           count={progress.expense}
           currency={progress.expenseCurrency}
-          compact={hasBoth}
         />
       ) : null}
       {progress.checklist ? (
         <ChecklistProgressMetric
           kind="checklist"
           count={progress.checklist}
-          compact={hasBoth}
         />
       ) : null}
     </Flex>
@@ -493,13 +510,16 @@ function Note(props: NoteProps) {
           sx={{
             fontSize: "subBody",
             color: "paragraph-secondary",
+            display: compact ? "flex" : undefined,
             alignItems: "center",
+            justifyContent: "center",
             gap: 1,
             flexWrap: compact ? "nowrap" : "wrap",
             whiteSpace: compact ? "nowrap" : undefined,
             mt: compact ? 0 : "small",
             ml: 0,
             height: compact ? "100%" : undefined,
+            minHeight: compact ? 0 : undefined,
             lineHeight: compact ? 1 : undefined,
             flexShrink: 0
           }}
@@ -512,7 +532,23 @@ function Note(props: NoteProps) {
               {note.readonly && <Readonly size={15} />}
               {note.expiryDate?.value ? <Destruct size={13} /> : null}
 
-              <TimeAgo live={true} datetime={date} locale="short" />
+              <TimeAgo
+                live={true}
+                datetime={date}
+                locale="short"
+                sx={
+                  compact
+                    ? {
+                        display: "flex",
+                        alignItems: "center",
+                        height: "100%",
+                        fontSize: "11px",
+                        lineHeight: 1,
+                        whiteSpace: "nowrap"
+                      }
+                    : undefined
+                }
+              />
             </>
           ) : (
             <>
