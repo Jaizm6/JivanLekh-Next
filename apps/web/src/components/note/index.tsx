@@ -226,23 +226,31 @@ function useNoteChecklistProgress(
 
 function ChecklistProgressLine({
   kind,
-  count
+  count,
+  compact = false
 }: {
   kind: "expense" | "checklist";
   count: ChecklistCount;
+  compact?: boolean;
 }) {
   const isExpense = kind === "expense";
-  const color = isExpense ? "#E58A24" : "#22A06B";
-  const percentageColor = isExpense
-    ? "light-dark(#99500B, #FFC078)"
-    : "light-dark(#087443, #65D6A0)";
+  const color = isExpense
+    ? "light-dark(#B45309, #FDBA74)"
+    : "light-dark(#047857, #6EE7B7)";
+  const backgroundColor = isExpense
+    ? "light-dark(rgba(180, 83, 9, 0.10), rgba(251, 146, 60, 0.14))"
+    : "light-dark(rgba(4, 120, 87, 0.10), rgba(52, 211, 153, 0.14))";
   const percent =
     count.total > 0
       ? Math.min(100, (count.checked / count.total) * 100)
       : 0;
   const displayedPercent = Math.round(percent);
-  const circumference = 2 * Math.PI * 21;
+  const center = compact ? 7 : 10;
+  const radius = compact ? 5 : 7;
+  const strokeWidth = compact ? 1.7 : 2;
+  const circumference = 2 * Math.PI * radius;
   const progressLength = (percent / 100) * circumference;
+  const symbol = isExpense ? "₹" : "✓";
   const label = `${isExpense ? "Expense checklist" : "Checklist"}: ${count.checked} of ${count.total} completed`;
 
   return (
@@ -250,69 +258,72 @@ function ChecklistProgressLine({
       alignItems="center"
       aria-label={label}
       title={label}
-      sx={{ gap: "7px", whiteSpace: "nowrap" }}
+      sx={{
+        gap: compact ? "3px" : "4px",
+        height: compact ? "16px" : "22px",
+        px: compact ? "4px" : "6px",
+        borderRadius: "999px",
+        backgroundColor,
+        boxSizing: "border-box",
+        flexShrink: 0,
+        whiteSpace: "nowrap"
+      }}
     >
       <Box
         as="svg"
         role="img"
         aria-label={`${displayedPercent}% complete`}
-        viewBox="0 0 48 48"
-        sx={{ width: "44px", height: "44px", flexShrink: 0 }}
+        viewBox={compact ? "0 0 14 14" : "0 0 20 20"}
+        sx={{
+          display: "block",
+          width: compact ? "12px" : "16px",
+          height: compact ? "12px" : "16px",
+          flexShrink: 0
+        }}
       >
         <circle
-          cx="24"
-          cy="24"
-          r="21"
+          cx={center}
+          cy={center}
+          r={radius}
           fill="none"
           stroke="var(--border, #d1d5db)"
-          strokeWidth="3"
+          strokeWidth={strokeWidth}
         />
         <circle
-          cx="24"
-          cy="24"
-          r="21"
+          cx={center}
+          cy={center}
+          r={radius}
           fill="none"
           stroke={color}
-          strokeWidth="3"
+          strokeWidth={strokeWidth}
           strokeDasharray={`${progressLength} ${circumference}`}
           strokeLinecap="round"
-          transform="rotate(-90 24 24)"
+          transform={`rotate(-90 ${center} ${center})`}
         />
-        <text
-          x="24"
-          y="28"
-          textAnchor="middle"
-          fontSize="12"
-          fontWeight="700"
-          fill={percentageColor}
-        >
-          {displayedPercent}%
-        </text>
       </Box>
-      <Box sx={{ display: "flex", flexDirection: "column", gap: "3px" }}>
-        <Text
-          as="span"
-          sx={{
-            color,
-            fontSize: "11px",
-            fontWeight: "bold",
-            lineHeight: 1.2
-          }}
-        >
-          {isExpense ? "₹ Expense" : "✓ Checklist"}
-        </Text>
-        <Text
-          as="span"
-          sx={{
-            color: "paragraph-secondary",
-            fontSize: "10px",
-            lineHeight: 1.2,
-            fontVariantNumeric: "tabular-nums"
-          }}
-        >
-          {count.checked}/{count.total} done
-        </Text>
-      </Box>
+      <Text
+        as="span"
+        sx={{
+          color,
+          fontSize: compact ? "8px" : "10px",
+          fontWeight: "bold",
+          lineHeight: 1
+        }}
+      >
+        {symbol}
+      </Text>
+      <Text
+        as="span"
+        sx={{
+          color,
+          fontSize: compact ? "9px" : "11px",
+          fontWeight: "bold",
+          lineHeight: 1,
+          fontVariantNumeric: "tabular-nums"
+        }}
+      >
+        {count.checked}/{count.total}
+      </Text>
     </Flex>
   );
 }
@@ -324,25 +335,35 @@ function NoteChecklistProgress({
 }) {
   if (!progress || (!progress.expense && !progress.checklist)) return null;
 
+  const hasBoth = Boolean(progress.expense && progress.checklist);
+
   return (
     <Flex
       role="group"
       aria-label="Note checklist progress"
       data-test-id="note-checklist-progress"
       sx={{
-        alignItems: "flex-start",
-        flexDirection: "column",
+        alignItems: hasBoth ? "flex-start" : "center",
+        flexDirection: hasBoth ? "column" : "row",
         flexShrink: 0,
-        gap: "4px",
+        gap: hasBoth ? "2px" : 0,
         justifyContent: "center",
-        minWidth: "128px"
+        whiteSpace: "nowrap"
       }}
     >
-      {progress.checklist ? (
-        <ChecklistProgressLine kind="checklist" count={progress.checklist} />
-      ) : null}
       {progress.expense ? (
-        <ChecklistProgressLine kind="expense" count={progress.expense} />
+        <ChecklistProgressLine
+          kind="expense"
+          count={progress.expense}
+          compact={hasBoth}
+        />
+      ) : null}
+      {progress.checklist ? (
+        <ChecklistProgressLine
+          kind="checklist"
+          count={progress.checklist}
+          compact={hasBoth}
+        />
       ) : null}
     </Flex>
   );
