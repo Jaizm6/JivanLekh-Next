@@ -156,8 +156,11 @@ function ListItem<TItem extends Item, TContext>(
         px: 1,
         py: isCompact ? 0 : 1,
         pr: isCompact ? (isCompactNoteRow ? 2 : props.titleAccessory ? 2 : 10) : 0,
-        height: isCompactNoteRow ? "36px" : isCompact ? (props.titleAccessory ? "36px" : 25) : "inherit",
-        minHeight: isCompactNoteRow ? "36px" : isCompact && props.titleAccessory ? "36px" : undefined,
+        height: isCompactNoteRow ? "38px" : isCompact ? (props.titleAccessory ? "36px" : 25) : "inherit",
+        minHeight: isCompactNoteRow ? "38px" : isCompact && props.titleAccessory ? "36px" : undefined,
+        maxHeight: isCompactNoteRow ? "38px" : undefined,
+        flex: isCompactNoteRow ? "0 0 38px" : undefined,
+        flexShrink: isCompactNoteRow ? 0 : undefined,
         boxSizing: isCompactNoteRow ? "border-box" : undefined,
         width: isCompactNoteRow ? "100%" : undefined,
         minWidth: isCompactNoteRow ? 0 : undefined,
@@ -169,6 +172,12 @@ function ListItem<TItem extends Item, TContext>(
         flexDirection: isCompact ? "row" : "column",
         justifyContent: isCompact ? "space-between" : "center",
         alignItems: isCompact ? "center" : undefined,
+        ...(isCompactNoteRow
+          ? {
+              justifyContent: "space-between",
+              overflow: "hidden"
+            }
+          : {}),
 
         opacity: isDisabled ? 0.7 : 1,
 
@@ -221,7 +230,10 @@ function ListItem<TItem extends Item, TContext>(
               fontWeight: "body",
               color:
                 selected && heading === "heading" ? `heading-selected` : heading,
-              display: "block",
+              display: "flex",
+              alignItems: "center",
+              height: "100%",
+              lineHeight: "18px",
               flex: "1 1 0%",
               minWidth: 0
             }}
@@ -310,11 +322,13 @@ function ListItem<TItem extends Item, TContext>(
             display: "flex",
             alignItems: "center",
             justifyContent: "flex-end",
-            gap: 2,
+            gap: "8px",
             flexShrink: 0,
             minWidth: 0,
             height: "100%",
-            whiteSpace: "nowrap"
+            minHeight: 0,
+            whiteSpace: "nowrap",
+            lineHeight: 1
           }}
         >
           {props.titleAccessory}
