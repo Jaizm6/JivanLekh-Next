@@ -40,6 +40,7 @@ type ListItemProps<TItem extends Item, TContext> = {
   };
   isFocused?: boolean;
   isCompact?: boolean;
+  isCompactNoteRow?: boolean;
   isDisabled?: boolean;
   item: TItem;
   draggable?: boolean;
@@ -80,6 +81,7 @@ function ListItem<TItem extends Item, TContext>(
     },
     isFocused,
     isCompact,
+    isCompactNoteRow,
     isDisabled,
     item,
     sx,
@@ -105,7 +107,10 @@ function ListItem<TItem extends Item, TContext>(
   return (
     <Flex
       id={`id_${item.id}`}
-      className={isSelected ? "selected" : ""}
+      className={[
+        isSelected ? "selected" : "",
+        isCompactNoteRow ? "compact-note-row" : ""
+      ].filter(Boolean).join(" ")}
       ref={listItemRef}
       draggable={draggable}
       onDragEnter={onDragEnter}
@@ -150,9 +155,12 @@ function ListItem<TItem extends Item, TContext>(
       sx={{
         px: 1,
         py: isCompact ? 0 : 1,
-        pr: isCompact ? (props.titleAccessory ? 2 : 10) : 0,
-        height: isCompact ? (props.titleAccessory ? "36px" : 25) : "inherit",
-        minHeight: isCompact && props.titleAccessory ? "36px" : undefined,
+        pr: isCompact ? (isCompactNoteRow ? 2 : props.titleAccessory ? 2 : 10) : 0,
+        height: isCompactNoteRow ? "36px" : isCompact ? (props.titleAccessory ? "36px" : 25) : "inherit",
+        minHeight: isCompactNoteRow ? "36px" : isCompact && props.titleAccessory ? "36px" : undefined,
+        boxSizing: "border-box",
+        width: "100%",
+        minWidth: 0,
         cursor: "pointer",
         position: "relative",
         overflow: "hidden",
@@ -201,7 +209,26 @@ function ListItem<TItem extends Item, TContext>(
       {!isCompact && props.header}
 
       {typeof props.title === "string" ? (
-        props.titleAccessory ? (
+        isCompactNoteRow ? (
+          <Text
+            dir="auto"
+            data-test-id={`title`}
+            variant={"body"}
+            sx={{
+              whiteSpace: "pre",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              fontWeight: "body",
+              color:
+                selected && heading === "heading" ? `heading-selected` : heading,
+              display: "block",
+              flex: "1 1 0%",
+              minWidth: 0
+            }}
+          >
+            {props.title}
+          </Text>
+        ) : props.titleAccessory ? (
           <Flex
             sx={{
               alignItems: "center",
@@ -276,7 +303,26 @@ function ListItem<TItem extends Item, TContext>(
           {props.body}
         </Text>
       )}
-      {props.footer ? <>{props.footer}</> : null}
+      {isCompactNoteRow ? (
+        <Flex
+          className="compact-note-trailing"
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "flex-end",
+            gap: 2,
+            flexShrink: 0,
+            minWidth: 0,
+            height: "100%",
+            whiteSpace: "nowrap"
+          }}
+        >
+          {props.titleAccessory}
+          {props.footer}
+        </Flex>
+      ) : props.footer ? (
+        <>{props.footer}</>
+      ) : null}
     </Flex>
   );
 }
