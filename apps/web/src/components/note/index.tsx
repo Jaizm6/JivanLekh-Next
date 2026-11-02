@@ -232,11 +232,17 @@ function ChecklistProgressLine({
   count: ChecklistCount;
 }) {
   const isExpense = kind === "expense";
-  const color = isExpense ? "#27966A" : "#3984D6";
+  const color = isExpense ? "#E58A24" : "#22A06B";
+  const percentageColor = isExpense
+    ? "light-dark(#99500B, #FFC078)"
+    : "light-dark(#087443, #65D6A0)";
   const percent =
     count.total > 0
       ? Math.min(100, (count.checked / count.total) * 100)
       : 0;
+  const displayedPercent = Math.round(percent);
+  const circumference = 2 * Math.PI * 21;
+  const progressLength = (percent / 100) * circumference;
   const label = `${isExpense ? "Expense checklist" : "Checklist"}: ${count.checked} of ${count.total} completed`;
 
   return (
@@ -244,52 +250,69 @@ function ChecklistProgressLine({
       alignItems="center"
       aria-label={label}
       title={label}
-      sx={{ gap: "3px", height: "8px", whiteSpace: "nowrap" }}
+      sx={{ gap: "7px", whiteSpace: "nowrap" }}
     >
-      <Text
-        as="span"
-        sx={{
-          color,
-          fontSize: "10px",
-          fontWeight: "bold",
-          lineHeight: 1,
-          width: "9px",
-          textAlign: "center"
-        }}
-      >
-        {isExpense ? "₹" : "☑"}
-      </Text>
       <Box
-        sx={{
-          backgroundColor: "var(--border, #d1d5db)",
-          borderRadius: "999px",
-          height: "3px",
-          overflow: "hidden",
-          width: "26px"
-        }}
+        as="svg"
+        role="img"
+        aria-label={`${displayedPercent}% complete`}
+        viewBox="0 0 48 48"
+        sx={{ width: "44px", height: "44px", flexShrink: 0 }}
       >
-        <Box
-          sx={{
-            backgroundColor: color,
-            borderRadius: "999px",
-            height: "100%",
-            width: `${percent}%`
-          }}
+        <circle
+          cx="24"
+          cy="24"
+          r="21"
+          fill="none"
+          stroke="var(--border, #d1d5db)"
+          strokeWidth="3"
         />
+        <circle
+          cx="24"
+          cy="24"
+          r="21"
+          fill="none"
+          stroke={color}
+          strokeWidth="3"
+          strokeDasharray={`${progressLength} ${circumference}`}
+          strokeLinecap="round"
+          transform="rotate(-90 24 24)"
+        />
+        <text
+          x="24"
+          y="28"
+          textAnchor="middle"
+          fontSize="12"
+          fontWeight="700"
+          fill={percentageColor}
+        >
+          {displayedPercent}%
+        </text>
       </Box>
-      <Text
-        as="span"
-        sx={{
-          color: "paragraph-secondary",
-          fontSize: "9px",
-          lineHeight: 1,
-          minWidth: "19px",
-          textAlign: "right",
-          fontVariantNumeric: "tabular-nums"
-        }}
-      >
-        {count.checked}/{count.total}
-      </Text>
+      <Box sx={{ display: "flex", flexDirection: "column", gap: "3px" }}>
+        <Text
+          as="span"
+          sx={{
+            color,
+            fontSize: "11px",
+            fontWeight: "bold",
+            lineHeight: 1.2
+          }}
+        >
+          {isExpense ? "₹ Expense" : "✓ Checklist"}
+        </Text>
+        <Text
+          as="span"
+          sx={{
+            color: "paragraph-secondary",
+            fontSize: "10px",
+            lineHeight: 1.2,
+            fontVariantNumeric: "tabular-nums"
+          }}
+        >
+          {count.checked}/{count.total} done
+        </Text>
+      </Box>
     </Flex>
   );
 }
@@ -307,19 +330,19 @@ function NoteChecklistProgress({
       aria-label="Note checklist progress"
       data-test-id="note-checklist-progress"
       sx={{
-        alignItems: "flex-end",
+        alignItems: "flex-start",
         flexDirection: "column",
         flexShrink: 0,
-        gap: "2px",
+        gap: "4px",
         justifyContent: "center",
-        minWidth: "56px"
+        minWidth: "128px"
       }}
     >
-      {progress.expense ? (
-        <ChecklistProgressLine kind="expense" count={progress.expense} />
-      ) : null}
       {progress.checklist ? (
         <ChecklistProgressLine kind="checklist" count={progress.checklist} />
+      ) : null}
+      {progress.expense ? (
+        <ChecklistProgressLine kind="expense" count={progress.expense} />
       ) : null}
     </Flex>
   );
