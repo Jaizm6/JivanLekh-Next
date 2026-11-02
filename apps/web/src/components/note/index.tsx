@@ -269,22 +269,29 @@ function useNoteChecklistProgress(
 function ChecklistProgressMetric({
   kind,
   count,
-  currency
+  currency,
+  compact = false
 }: {
   kind: "expense" | "checklist";
   count: ChecklistCount;
   currency?: string;
+  compact?: boolean;
 }) {
   const isExpense = kind === "expense";
   const color = isExpense
-    ? "light-dark(#D97706, #F59E0B)"
-    : "light-dark(#059669, #34D399)";
+    ? "light-dark(#B45309, #FDBA74)"
+    : "light-dark(#047857, #6EE7B7)";
+  const backgroundColor = isExpense
+    ? "light-dark(rgba(180, 83, 9, 0.10), rgba(251, 146, 60, 0.14))"
+    : "light-dark(rgba(4, 120, 87, 0.10), rgba(52, 211, 153, 0.14))";
   const percent =
     count.total > 0
       ? Math.min(100, (count.checked / count.total) * 100)
       : 0;
-  const circumference = 2 * Math.PI * 6;
+  const circumference = 2 * Math.PI * (compact ? 4 : 6);
   const progressLength = (percent / 100) * circumference;
+  const center = compact ? 5 : 8;
+  const radius = compact ? 4 : 6;
   const symbol = isExpense ? currency || "¤" : "✓";
   const label = `${isExpense ? "Expense checklist" : "Checklist"}: ${count.checked} of ${count.total} completed`;
 
@@ -293,40 +300,54 @@ function ChecklistProgressMetric({
       alignItems="center"
       aria-label={label}
       title={label}
-      sx={{ gap: "3px", flexShrink: 0, whiteSpace: "nowrap" }}
+      sx={{
+        gap: compact ? "2px" : "3px",
+        height: compact ? "13px" : "20px",
+        px: compact ? "3px" : "6px",
+        borderRadius: "999px",
+        backgroundColor,
+        boxSizing: "border-box",
+        flexShrink: 0,
+        whiteSpace: "nowrap"
+      }}
     >
       <Box
         as="svg"
         role="img"
         aria-label={`${Math.round(percent)}% complete`}
-        viewBox="0 0 16 16"
-        sx={{ display: "block", width: "14px", height: "14px", flexShrink: 0 }}
+        viewBox={compact ? "0 0 10 10" : "0 0 16 16"}
+        sx={{
+          display: "block",
+          width: compact ? "10px" : "14px",
+          height: compact ? "10px" : "14px",
+          flexShrink: 0
+        }}
       >
         <circle
-          cx="8"
-          cy="8"
-          r="6"
+          cx={center}
+          cy={center}
+          r={radius}
           fill="none"
-          stroke="light-dark(#CBD5E1, rgba(255, 255, 255, 0.22))"
-          strokeWidth="2"
+          stroke="light-dark(#CBD5E1, rgba(255, 255, 255, 0.24))"
+          strokeWidth={compact ? 1.3 : 2}
         />
         <circle
-          cx="8"
-          cy="8"
-          r="6"
+          cx={center}
+          cy={center}
+          r={radius}
           fill="none"
           stroke={color}
-          strokeWidth="2"
+          strokeWidth={compact ? 1.3 : 2}
           strokeDasharray={`${progressLength} ${circumference}`}
           strokeLinecap="round"
-          transform="rotate(-90 8 8)"
+          transform={`rotate(-90 ${center} ${center})`}
         />
       </Box>
       <Text
         as="span"
         sx={{
           color,
-          fontSize: "10px",
+          fontSize: compact ? "7px" : "10px",
           fontWeight: "medium",
           lineHeight: 1
         }}
@@ -337,7 +358,7 @@ function ChecklistProgressMetric({
         as="span"
         sx={{
           color,
-          fontSize: "10px",
+          fontSize: compact ? "8px" : "10px",
           fontWeight: "semibold",
           lineHeight: 1,
           fontVariantNumeric: "tabular-nums"
@@ -365,14 +386,10 @@ function NoteChecklistProgress({
       data-test-id="note-checklist-progress"
       alignItems="center"
       sx={{
-        flexDirection: "row",
+        flexDirection: hasBoth ? "column" : "row",
         flexShrink: 0,
-        gap: "6px",
-        height: "20px",
-        px: "6px",
-        borderRadius: "999px",
-        backgroundColor: "light-dark(#F3F4F6, rgba(255, 255, 255, 0.06))",
-        boxSizing: "border-box",
+        gap: hasBoth ? "1px" : 0,
+        justifyContent: "center",
         whiteSpace: "nowrap"
       }}
     >
@@ -381,26 +398,14 @@ function NoteChecklistProgress({
           kind="expense"
           count={progress.expense}
           currency={progress.expenseCurrency}
-        />
-      ) : null}
-      {hasBoth ? (
-        <Box
-          as="span"
-          role="separator"
-          aria-orientation="vertical"
-          sx={{
-            width: "1px",
-            height: "10px",
-            flexShrink: 0,
-            backgroundColor:
-              "light-dark(rgba(107, 114, 128, 0.35), rgba(255, 255, 255, 0.18))"
-          }}
+          compact={hasBoth}
         />
       ) : null}
       {progress.checklist ? (
         <ChecklistProgressMetric
           kind="checklist"
           count={progress.checklist}
+          compact={hasBoth}
         />
       ) : null}
     </Flex>
