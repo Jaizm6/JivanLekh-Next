@@ -210,7 +210,7 @@ function getNoteChecklistProgress(html: string): NoteChecklistProgress | null {
 
 function useNoteChecklistProgress(
   note: NoteType,
-  compact?: boolean,
+  enabled?: boolean,
   locked?: boolean
 ) {
   const contentId = note.contentId;
@@ -221,7 +221,7 @@ function useNoteChecklistProgress(
   });
 
   React.useEffect(() => {
-    if (!compact || locked || !contentId) {
+    if (!enabled || locked || !contentId) {
       setSnapshot({ key, progress: null });
       return;
     }
@@ -261,141 +261,60 @@ function useNoteChecklistProgress(
     return () => {
       cancelled = true;
     };
-  }, [compact, key, locked, contentId]);
+  }, [enabled, key, locked, contentId]);
 
   return snapshot.key === key ? snapshot.progress : null;
 }
 
-function ChecklistProgressMetric({
+function getChecklistProgressColor(kind: "expense" | "checklist") {
+  return kind === "expense"
+    ? "light-dark(#B45309, #FDBA74)"
+    : "light-dark(#047857, #6EE7B7)";
+}
+
+function CompactChecklistProgressBar({
   kind,
-  count,
-  currency
+  count
 }: {
   kind: "expense" | "checklist";
   count: ChecklistCount;
-  currency?: string;
 }) {
-  const isExpense = kind === "expense";
-  const color = isExpense
-    ? "light-dark(#B45309, #FDBA74)"
-    : "light-dark(#047857, #6EE7B7)";
-  const backgroundColor = isExpense
-    ? "light-dark(rgba(180, 83, 9, 0.10), rgba(251, 146, 60, 0.14))"
-    : "light-dark(rgba(4, 120, 87, 0.10), rgba(52, 211, 153, 0.14))";
+  const color = getChecklistProgressColor(kind);
   const percent =
     count.total > 0
       ? Math.min(100, (count.checked / count.total) * 100)
       : 0;
-  const ringSize = 10;
-  const center = ringSize / 2;
-  const radius = 4;
-  const circumference = 2 * Math.PI * radius;
-  const progressLength = (percent / 100) * circumference;
-  const symbol = isExpense ? currency || "¤" : "✓";
-  const label = `${isExpense ? "Expense checklist" : "Checklist"}: ${count.checked} of ${count.total} completed`;
+  const label = `${kind === "expense" ? "Expense checklist" : "Checklist"}: ${count.checked} of ${count.total} completed`;
 
   return (
-    <Flex
-      alignItems="center"
-      justifyContent="center"
+    <Box
+      role="img"
       aria-label={label}
       title={label}
       sx={{
-        display: "inline-flex",
-        alignSelf: "center",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: "3px",
-        height: "16px",
-        minHeight: "16px",
-        maxHeight: "16px",
-        px: "5px",
-        py: 0,
-        borderRadius: "9999px",
-        backgroundColor,
-        boxSizing: "border-box",
-        flexShrink: 0,
-        whiteSpace: "nowrap",
-        lineHeight: 1,
-        verticalAlign: "middle"
+        width: "26px",
+        height: "3px",
+        borderRadius: "999px",
+        overflow: "hidden",
+        backgroundColor:
+          "light-dark(#E5E7EB, rgba(255, 255, 255, 0.18))",
+        flex: "0 0 26px"
       }}
     >
       <Box
-        as="svg"
-        role="img"
-        aria-label={`${Math.round(percent)}% complete`}
-        viewBox="0 0 10 10"
         sx={{
-          display: "block",
-          alignSelf: "center",
-          width: "10px",
-          height: "10px",
-          flex: "0 0 10px",
-          verticalAlign: "middle"
-        }}
-      >
-        <circle
-          cx={center}
-          cy={center}
-          r={radius}
-          fill="none"
-          stroke="light-dark(#CBD5E1, rgba(255, 255, 255, 0.24))"
-          strokeWidth="1.3"
-        />
-        <circle
-          cx={center}
-          cy={center}
-          r={radius}
-          fill="none"
-          stroke={color}
-          strokeWidth="1.3"
-          strokeDasharray={`${progressLength} ${circumference}`}
-          strokeLinecap="round"
-          transform={`rotate(-90 ${center} ${center})`}
-        />
-      </Box>
-      <Box
-        as="span"
-        sx={{
-          display: "inline-flex",
-          alignItems: "center",
-          justifyContent: "center",
-          alignSelf: "center",
           height: "100%",
-          color,
-          fontSize: "10px",
-          fontWeight: "medium",
-          lineHeight: 1,
-          flex: "0 0 auto",
-          verticalAlign: "middle"
+          width: `${percent}%`,
+          minWidth: percent > 0 ? "2px" : 0,
+          borderRadius: "999px",
+          backgroundColor: color
         }}
-      >
-        {symbol}
-      </Box>
-      <Box
-        as="span"
-        sx={{
-          display: "inline-flex",
-          alignItems: "center",
-          justifyContent: "center",
-          alignSelf: "center",
-          height: "100%",
-          color,
-          fontSize: "10px",
-          fontWeight: "medium",
-          lineHeight: 1,
-          fontVariantNumeric: "tabular-nums",
-          flex: "0 0 auto",
-          verticalAlign: "middle"
-        }}
-      >
-        {count.checked}/{count.total}
-      </Box>
-    </Flex>
+      />
+    </Box>
   );
 }
 
-function NoteChecklistProgress({
+function CompactChecklistProgress({
   progress
 }: {
   progress: NoteChecklistProgress | null;
@@ -411,28 +330,157 @@ function NoteChecklistProgress({
       data-test-id="note-checklist-progress"
       sx={{
         display: "flex",
-        flexDirection: hasBoth ? "column" : "row",
+        flexDirection: "column",
+        alignItems: "flex-end",
         justifyContent: "center",
-        alignItems: hasBoth ? "flex-end" : "center",
         gap: hasBoth ? "2px" : 0,
-        height: hasBoth ? "34px" : "16px",
-        minHeight: hasBoth ? "34px" : "16px",
-        maxHeight: hasBoth ? "34px" : "16px",
-        flexShrink: 0,
-        whiteSpace: "nowrap",
-        lineHeight: 1,
-        alignSelf: "center"
+        width: "26px",
+        height: hasBoth ? "8px" : "3px",
+        flex: "0 0 26px",
+        flexShrink: 0
       }}
     >
       {progress.expense ? (
-        <ChecklistProgressMetric
+        <CompactChecklistProgressBar
+          kind="expense"
+          count={progress.expense}
+        />
+      ) : null}
+      {progress.checklist ? (
+        <CompactChecklistProgressBar
+          kind="checklist"
+          count={progress.checklist}
+        />
+      ) : null}
+    </Flex>
+  );
+}
+
+function DetailedChecklistProgressMetric({
+  kind,
+  count,
+  currency
+}: {
+  kind: "expense" | "checklist";
+  count: ChecklistCount;
+  currency?: string;
+}) {
+  const color = getChecklistProgressColor(kind);
+  const percent =
+    count.total > 0
+      ? Math.min(100, (count.checked / count.total) * 100)
+      : 0;
+  const circumference = 2 * Math.PI * 5;
+  const progressLength = (percent / 100) * circumference;
+  const symbol = kind === "expense" ? currency || "¤" : "✓";
+  const label = `${kind === "expense" ? "Expense checklist" : "Checklist"}: ${count.checked} of ${count.total} completed`;
+
+  return (
+    <Flex
+      alignItems="center"
+      aria-label={label}
+      title={label}
+      sx={{
+        display: "inline-flex",
+        gap: "3px",
+        height: "18px",
+        flexShrink: 0,
+        whiteSpace: "nowrap",
+        lineHeight: 1
+      }}
+    >
+      <Box
+        as="svg"
+        role="img"
+        aria-label={`${Math.round(percent)}% complete`}
+        viewBox="0 0 12 12"
+        sx={{
+          display: "block",
+          width: "12px",
+          height: "12px",
+          flex: "0 0 12px"
+        }}
+      >
+        <circle
+          cx="6"
+          cy="6"
+          r="5"
+          fill="none"
+          stroke="light-dark(#CBD5E1, rgba(255, 255, 255, 0.24))"
+          strokeWidth="1.5"
+        />
+        <circle
+          cx="6"
+          cy="6"
+          r="5"
+          fill="none"
+          stroke={color}
+          strokeWidth="1.5"
+          strokeDasharray={`${progressLength} ${circumference}`}
+          strokeLinecap="round"
+          transform="rotate(-90 6 6)"
+        />
+      </Box>
+      <Text
+        as="span"
+        sx={{
+          display: "inline-flex",
+          alignItems: "center",
+          color,
+          fontSize: "10px",
+          fontWeight: "medium",
+          lineHeight: 1
+        }}
+      >
+        {symbol}
+      </Text>
+      <Text
+        as="span"
+        sx={{
+          display: "inline-flex",
+          alignItems: "center",
+          color,
+          fontSize: "10px",
+          fontWeight: "medium",
+          lineHeight: 1,
+          fontVariantNumeric: "tabular-nums"
+        }}
+      >
+        {count.checked}/{count.total}
+      </Text>
+    </Flex>
+  );
+}
+
+function DetailedChecklistProgress({
+  progress
+}: {
+  progress: NoteChecklistProgress | null;
+}) {
+  if (!progress || (!progress.expense && !progress.checklist)) return null;
+
+  return (
+    <Flex
+      role="group"
+      aria-label="Note checklist progress"
+      data-test-id="note-checklist-progress"
+      sx={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: "8px",
+        flexWrap: "wrap",
+        lineHeight: 1
+      }}
+    >
+      {progress.expense ? (
+        <DetailedChecklistProgressMetric
           kind="expense"
           count={progress.expense}
           currency={progress.expenseCurrency}
         />
       ) : null}
       {progress.checklist ? (
-        <ChecklistProgressMetric
+        <DetailedChecklistProgressMetric
           kind="checklist"
           count={progress.checklist}
         />
@@ -459,7 +507,7 @@ function Note(props: NoteProps) {
   const isOpened = useEditorStore((store) => store.isNoteOpen(item.id));
   const primary: SchemeColors = color ? color.colorCode : "accent-selected";
   const dateFormat = useSettingStore((store) => store.dateFormat);
-  const checklistProgress = useNoteChecklistProgress(note, compact, locked);
+  const checklistProgress = useNoteChecklistProgress(note, true, locked);
 
   return (
     <ListItem
@@ -471,7 +519,7 @@ function Note(props: NoteProps) {
       title={note.title}
       titleAccessory={
         compact && checklistProgress ? (
-          <NoteChecklistProgress progress={checklistProgress} />
+          <CompactChecklistProgress progress={checklistProgress} />
         ) : undefined
       }
       body={note.headline as string}
@@ -647,6 +695,8 @@ function Note(props: NoteProps) {
                   })}
                 />
               )}
+
+              <DetailedChecklistProgress progress={checklistProgress} />
             </>
           )}
         </Flex>
