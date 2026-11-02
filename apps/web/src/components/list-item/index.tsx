@@ -152,7 +152,7 @@ function ListItem<TItem extends Item, TContext>(
         py: isCompact ? 0 : 1,
         pr: isCompact ? 10 : 0,
         height: isCompact ? (props.titleAccessory ? "auto" : 25) : "inherit",
-        minHeight: isCompact && props.titleAccessory ? "44px" : undefined,
+        minHeight: isCompact && props.titleAccessory ? "25px" : undefined,
         cursor: "pointer",
         position: "relative",
         overflow: "hidden",
