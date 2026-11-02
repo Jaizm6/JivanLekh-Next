@@ -288,38 +288,43 @@ function ChecklistProgressMetric({
     count.total > 0
       ? Math.min(100, (count.checked / count.total) * 100)
       : 0;
-  const circumference = 2 * Math.PI * (compact ? 4 : 6);
+  const ringSize = compact ? 10 : 12;
+  const center = ringSize / 2;
+  const radius = compact ? 4 : 5;
+  const circumference = 2 * Math.PI * radius;
   const progressLength = (percent / 100) * circumference;
-  const center = compact ? 5 : 8;
-  const radius = compact ? 4 : 6;
   const symbol = isExpense ? currency || "¤" : "✓";
   const label = `${isExpense ? "Expense checklist" : "Checklist"}: ${count.checked} of ${count.total} completed`;
 
   return (
     <Flex
       alignItems="center"
+      justifyContent="center"
       aria-label={label}
       title={label}
       sx={{
-        gap: compact ? "2px" : "3px",
-        height: compact ? "13px" : "20px",
-        px: compact ? "3px" : "6px",
-        borderRadius: "999px",
+        display: "inline-flex",
+        gap: "3px",
+        height: compact ? "15px" : "18px",
+        px: "5px",
+        py: 0,
+        borderRadius: "9999px",
         backgroundColor,
         boxSizing: "border-box",
         flexShrink: 0,
-        whiteSpace: "nowrap"
+        whiteSpace: "nowrap",
+        lineHeight: 1
       }}
     >
       <Box
         as="svg"
         role="img"
         aria-label={`${Math.round(percent)}% complete`}
-        viewBox={compact ? "0 0 10 10" : "0 0 16 16"}
+        viewBox={`0 0 ${ringSize} ${ringSize}`}
         sx={{
           display: "block",
-          width: compact ? "10px" : "14px",
-          height: compact ? "10px" : "14px",
+          width: `${ringSize}px`,
+          height: `${ringSize}px`,
           flexShrink: 0
         }}
       >
@@ -329,7 +334,7 @@ function ChecklistProgressMetric({
           r={radius}
           fill="none"
           stroke="light-dark(#CBD5E1, rgba(255, 255, 255, 0.24))"
-          strokeWidth={compact ? 1.3 : 2}
+          strokeWidth={compact ? 1.3 : 1.6}
         />
         <circle
           cx={center}
@@ -337,7 +342,7 @@ function ChecklistProgressMetric({
           r={radius}
           fill="none"
           stroke={color}
-          strokeWidth={compact ? 1.3 : 2}
+          strokeWidth={compact ? 1.3 : 1.6}
           strokeDasharray={`${progressLength} ${circumference}`}
           strokeLinecap="round"
           transform={`rotate(-90 ${center} ${center})`}
@@ -346,10 +351,12 @@ function ChecklistProgressMetric({
       <Text
         as="span"
         sx={{
+          display: "block",
           color,
-          fontSize: compact ? "7px" : "10px",
+          fontSize: "10px",
           fontWeight: "medium",
-          lineHeight: 1
+          lineHeight: 1,
+          flexShrink: 0
         }}
       >
         {symbol}
@@ -357,11 +364,13 @@ function ChecklistProgressMetric({
       <Text
         as="span"
         sx={{
+          display: "block",
           color,
-          fontSize: compact ? "8px" : "10px",
-          fontWeight: "semibold",
+          fontSize: "10px",
+          fontWeight: "medium",
           lineHeight: 1,
-          fontVariantNumeric: "tabular-nums"
+          fontVariantNumeric: "tabular-nums",
+          flexShrink: 0
         }}
       >
         {count.checked}/{count.total}
@@ -384,13 +393,16 @@ function NoteChecklistProgress({
       role="group"
       aria-label="Note checklist progress"
       data-test-id="note-checklist-progress"
-      alignItems="center"
       sx={{
+        display: "flex",
         flexDirection: hasBoth ? "column" : "row",
-        flexShrink: 0,
-        gap: hasBoth ? "1px" : 0,
         justifyContent: "center",
-        whiteSpace: "nowrap"
+        alignItems: hasBoth ? "flex-end" : "center",
+        gap: hasBoth ? "2px" : 0,
+        height: hasBoth ? "32px" : "18px",
+        flexShrink: 0,
+        whiteSpace: "nowrap",
+        lineHeight: 1
       }}
     >
       {progress.expense ? (
@@ -436,6 +448,7 @@ function Note(props: NoteProps) {
     <ListItem
       draggable={true}
       isFocused={isOpened}
+      isCompactNoteRow={compact}
       isCompact={compact}
       item={note}
       title={note.title}
@@ -485,7 +498,9 @@ function Note(props: NoteProps) {
             flexWrap: compact ? "nowrap" : "wrap",
             whiteSpace: compact ? "nowrap" : undefined,
             mt: compact ? 0 : "small",
-            ml: compact ? 2 : 0,
+            ml: 0,
+            height: compact ? "100%" : undefined,
+            lineHeight: compact ? 1 : undefined,
             flexShrink: 0
           }}
         >
