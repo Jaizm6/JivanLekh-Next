@@ -132,7 +132,7 @@ const checklistProgressCache = new Map<
 
 function getExpenseCurrency(lists: Element[]): string {
   const currencyPattern =
-    /C\$|A\$|AED\b|INR\b|USD\b|EUR\b|GBP\b|JPY\b|CAD\b|AUD\b|₹|\$|€|£|¥|Rs\.?/gi;
+    /C\$|A\$|\bAED\b|\bINR\b|\bUSD\b|\bEUR\b|\bGBP\b|\bJPY\b|\bCAD\b|\bAUD\b|₹|\$|€|£|¥|\bRs\.?/gi;
   const detectedCurrencies = new Set<string>();
 
   lists.forEach((list) => {
