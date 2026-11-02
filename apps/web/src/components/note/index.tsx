@@ -117,6 +117,7 @@ type NoteProps = NoteResolvedData & {
 type ChecklistCount = { checked: number; total: number };
 type NoteChecklistProgress = {
   expense?: ChecklistCount;
+  expenseCurrency?: string;
   checklist?: ChecklistCount;
 };
 type ChecklistProgressSnapshot = {
@@ -128,6 +129,44 @@ const checklistProgressCache = new Map<
   string,
   NoteChecklistProgress | null
 >();
+
+function getExpenseCurrency(lists: Element[]): string {
+  const currencyPattern =
+    /C\$|A\$|AED\b|INR\b|USD\b|EUR\b|GBP\b|JPY\b|CAD\b|AUD\b|₹|\$|€|£|¥|Rs\.?/gi;
+  const detectedCurrencies = new Set<string>();
+
+  lists.forEach((list) => {
+    Array.from(list.querySelectorAll("li.checklist--item")).forEach((item) => {
+      const matches = item.textContent?.match(currencyPattern) || [];
+      matches.forEach((match) => {
+        const token = match.toUpperCase().replace(/\.$/, "");
+        const symbol =
+          token === "INR" || token === "RS" || token === "₹"
+            ? "₹"
+            : token === "USD" || token === "$"
+            ? "$"
+            : token === "EUR" || token === "€"
+            ? "€"
+            : token === "GBP" || token === "£"
+            ? "£"
+            : token === "JPY" || token === "¥"
+            ? "¥"
+            : token === "CAD" || token === "C$"
+            ? "C$"
+            : token === "AUD" || token === "A$"
+            ? "A$"
+            : token === "AED"
+            ? "AED"
+            : "";
+        if (symbol) detectedCurrencies.add(symbol);
+      });
+    });
+  });
+
+  return detectedCurrencies.size === 1
+    ? Array.from(detectedCurrencies)[0]
+    : "¤";
+}
 
 function getNoteChecklistProgress(html: string): NoteChecklistProgress | null {
   const parsed = new DOMParser().parseFromString(html, "text/html");
@@ -159,6 +198,9 @@ function getNoteChecklistProgress(html: string): NoteChecklistProgress | null {
   return {
     expense: expenseLists.length
       ? countItems(expenseLists, "li.checklist--item")
+      : undefined,
+    expenseCurrency: expenseLists.length
+      ? getExpenseCurrency(expenseLists)
       : undefined,
     checklist: checklistLists.length
       ? countItems(checklistLists, "li.simple-checklist--item")
@@ -224,33 +266,26 @@ function useNoteChecklistProgress(
   return snapshot.key === key ? snapshot.progress : null;
 }
 
-function ChecklistProgressLine({
+function ChecklistProgressMetric({
   kind,
   count,
-  compact = false
+  currency
 }: {
   kind: "expense" | "checklist";
   count: ChecklistCount;
-  compact?: boolean;
+  currency?: string;
 }) {
   const isExpense = kind === "expense";
   const color = isExpense
-    ? "light-dark(#B45309, #FDBA74)"
-    : "light-dark(#047857, #6EE7B7)";
-  const backgroundColor = isExpense
-    ? "light-dark(rgba(180, 83, 9, 0.10), rgba(251, 146, 60, 0.14))"
-    : "light-dark(rgba(4, 120, 87, 0.10), rgba(52, 211, 153, 0.14))";
+    ? "light-dark(#D97706, #F59E0B)"
+    : "light-dark(#059669, #34D399)";
   const percent =
     count.total > 0
       ? Math.min(100, (count.checked / count.total) * 100)
       : 0;
-  const displayedPercent = Math.round(percent);
-  const center = compact ? 7 : 10;
-  const radius = compact ? 5 : 7;
-  const strokeWidth = compact ? 1.7 : 2;
-  const circumference = 2 * Math.PI * radius;
+  const circumference = 2 * Math.PI * 6;
   const progressLength = (percent / 100) * circumference;
-  const symbol = isExpense ? "₹" : "✓";
+  const symbol = isExpense ? currency || "¤" : "✓";
   const label = `${isExpense ? "Expense checklist" : "Checklist"}: ${count.checked} of ${count.total} completed`;
 
   return (
@@ -258,55 +293,41 @@ function ChecklistProgressLine({
       alignItems="center"
       aria-label={label}
       title={label}
-      sx={{
-        gap: compact ? "3px" : "4px",
-        height: compact ? "16px" : "22px",
-        px: compact ? "4px" : "6px",
-        borderRadius: "999px",
-        backgroundColor,
-        boxSizing: "border-box",
-        flexShrink: 0,
-        whiteSpace: "nowrap"
-      }}
+      sx={{ gap: "3px", flexShrink: 0, whiteSpace: "nowrap" }}
     >
       <Box
         as="svg"
         role="img"
-        aria-label={`${displayedPercent}% complete`}
-        viewBox={compact ? "0 0 14 14" : "0 0 20 20"}
-        sx={{
-          display: "block",
-          width: compact ? "12px" : "16px",
-          height: compact ? "12px" : "16px",
-          flexShrink: 0
-        }}
+        aria-label={`${Math.round(percent)}% complete`}
+        viewBox="0 0 16 16"
+        sx={{ display: "block", width: "14px", height: "14px", flexShrink: 0 }}
       >
         <circle
-          cx={center}
-          cy={center}
-          r={radius}
+          cx="8"
+          cy="8"
+          r="6"
           fill="none"
-          stroke="var(--border, #d1d5db)"
-          strokeWidth={strokeWidth}
+          stroke="light-dark(#CBD5E1, rgba(255, 255, 255, 0.22))"
+          strokeWidth="2"
         />
         <circle
-          cx={center}
-          cy={center}
-          r={radius}
+          cx="8"
+          cy="8"
+          r="6"
           fill="none"
           stroke={color}
-          strokeWidth={strokeWidth}
+          strokeWidth="2"
           strokeDasharray={`${progressLength} ${circumference}`}
           strokeLinecap="round"
-          transform={`rotate(-90 ${center} ${center})`}
+          transform="rotate(-90 8 8)"
         />
       </Box>
       <Text
         as="span"
         sx={{
           color,
-          fontSize: compact ? "8px" : "10px",
-          fontWeight: "bold",
+          fontSize: "10px",
+          fontWeight: "medium",
           lineHeight: 1
         }}
       >
@@ -316,8 +337,8 @@ function ChecklistProgressLine({
         as="span"
         sx={{
           color,
-          fontSize: compact ? "9px" : "11px",
-          fontWeight: "bold",
+          fontSize: "10px",
+          fontWeight: "semibold",
           lineHeight: 1,
           fontVariantNumeric: "tabular-nums"
         }}
@@ -342,27 +363,44 @@ function NoteChecklistProgress({
       role="group"
       aria-label="Note checklist progress"
       data-test-id="note-checklist-progress"
+      alignItems="center"
       sx={{
-        alignItems: hasBoth ? "flex-start" : "center",
-        flexDirection: hasBoth ? "column" : "row",
+        flexDirection: "row",
         flexShrink: 0,
-        gap: hasBoth ? "2px" : 0,
-        justifyContent: "center",
+        gap: "6px",
+        height: "20px",
+        px: "6px",
+        borderRadius: "999px",
+        backgroundColor: "light-dark(#F3F4F6, rgba(255, 255, 255, 0.06))",
+        boxSizing: "border-box",
         whiteSpace: "nowrap"
       }}
     >
       {progress.expense ? (
-        <ChecklistProgressLine
+        <ChecklistProgressMetric
           kind="expense"
           count={progress.expense}
-          compact={hasBoth}
+          currency={progress.expenseCurrency}
+        />
+      ) : null}
+      {hasBoth ? (
+        <Box
+          as="span"
+          role="separator"
+          aria-orientation="vertical"
+          sx={{
+            width: "1px",
+            height: "10px",
+            flexShrink: 0,
+            backgroundColor:
+              "light-dark(rgba(107, 114, 128, 0.35), rgba(255, 255, 255, 0.18))"
+          }}
         />
       ) : null}
       {progress.checklist ? (
-        <ChecklistProgressLine
+        <ChecklistProgressMetric
           kind="checklist"
           count={progress.checklist}
-          compact={hasBoth}
         />
       ) : null}
     </Flex>
@@ -439,8 +477,10 @@ function Note(props: NoteProps) {
             color: "paragraph-secondary",
             alignItems: "center",
             gap: 1,
-            flexWrap: "wrap",
-            mt: "small",
+            flexWrap: compact ? "nowrap" : "wrap",
+            whiteSpace: compact ? "nowrap" : undefined,
+            mt: compact ? 0 : "small",
+            ml: compact ? 2 : 0,
             flexShrink: 0
           }}
         >
