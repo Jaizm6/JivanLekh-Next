@@ -186,6 +186,24 @@ export type AttachmentProgress = {
   file?: File;
 };
 
+export async function saveAudioRecording(
+  blob: Blob,
+  filename: string
+): Promise<Extract<Attachment, { type: "audio" }> | undefined> {
+  const mime = blob.type || "audio/webm";
+  const file = new File([blob], filename, { type: mime });
+  const attachment = await pickFile(file);
+  if (!attachment) return undefined;
+
+  return {
+    type: "audio",
+    filename: attachment.filename,
+    hash: attachment.hash,
+    mime: attachment.mime,
+    size: attachment.size
+  };
+}
+
 type AddAttachmentOptions = {
   expectedFileHash?: string;
   forceWrite?: boolean;
