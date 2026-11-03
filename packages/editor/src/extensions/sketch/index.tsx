@@ -17,7 +17,7 @@ GNU General Public License for more details.
 import { Box, Button, Flex } from "@theme-ui/components";
 import { ReactNodeViewProps, createNodeView } from "../react/index.js";
 import { Node, mergeAttributes } from "@tiptap/core";
-import { useState } from "react";
+import { useState, type PointerEvent } from "react";
 
 type Point = { x: number; y: number };
 type Stroke = { color: string; width: number; points: Point[] };
@@ -32,7 +32,7 @@ function SketchComponent(props: ReactNodeViewProps<SketchAttrs>) {
   const [brush, setBrush] = useState(3);
   const [active, setActive] = useState<Point[] | null>(null);
 
-  const pointFrom = (event: React.PointerEvent<SVGSVGElement>) => {
+  const pointFrom = (event: PointerEvent<SVGSVGElement>) => {
     const rect = event.currentTarget.getBoundingClientRect();
     return {
       x: Math.max(0, Math.min(1000, ((event.clientX - rect.left) / rect.width) * 1000)),
