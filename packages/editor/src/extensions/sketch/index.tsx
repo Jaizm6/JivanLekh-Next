@@ -72,7 +72,21 @@ export const SketchNode = Node.create({
   atom: true,
   draggable: true,
   addAttributes() {
-    return { strokes: { default: [], rendered: false } };
+    return {
+      strokes: {
+        default: [],
+        parseHTML: (element: HTMLElement) => {
+          try {
+            return JSON.parse(element.getAttribute("data-strokes") || "[]");
+          } catch {
+            return [];
+          }
+        },
+        renderHTML: (attributes: { strokes: Stroke[] }) => ({
+          "data-strokes": JSON.stringify(attributes.strokes || [])
+        })
+      }
+    };
   },
   parseHTML() { return [{ tag: "div[data-sketch]" }]; },
   renderHTML({ HTMLAttributes }) {
