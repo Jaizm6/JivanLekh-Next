@@ -173,9 +173,10 @@ export function AudioComponent(props: ReactNodeViewProps<AudioAttachment>) {
     }
 
     try {
+      const extension = blob.type.includes("mp4") ? "m4a" : "webm";
       const filename = `Voice memo ${new Date()
         .toISOString()
-        .replace(/[:.]/g, "-")}.webm`;
+        .replace(/[:.]/g, "-")}.${extension}`;
       const attachment = await editor.storage.saveAudioRecording?.(
         blob,
         filename
