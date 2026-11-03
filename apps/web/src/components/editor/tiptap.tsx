@@ -177,6 +177,7 @@ function TipTap(props: TipTapProps) {
     onDownloadAttachment,
     onPreviewAttachment,
     onGetAttachmentData,
+    onSaveAudioRecording,
     onAttachFiles,
     onInsertInternalLink,
     onContentChange,
