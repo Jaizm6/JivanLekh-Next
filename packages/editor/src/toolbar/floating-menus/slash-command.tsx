@@ -37,6 +37,7 @@ const COMMAND_COLORS = {
   list: "var(--jl-icon-list)",
   table: "var(--jl-icon-code)",
   text: "var(--jl-icon-link)",
+  callout: "var(--jl-icon-heading)",
   code: "var(--jl-icon-code)",
   media: "var(--jl-icon-media)",
   divider: "var(--jl-icon-muted)"
@@ -151,7 +152,7 @@ export function SlashCommandFloatingMenu({ editor }: FloatingMenuProps) {
       },
       {
         id: "callout", title: "Callout", description: "Highlighted information block",
-        aliases: ["info", "note", "highlight"], icon: Icons.callout, color: COMMAND_COLORS.heading,
+        aliases: ["info", "note", "highlight"], icon: Icons.callout, color: COMMAND_COLORS.callout,
         run: (editor, range) => editor.chain().focus().deleteRange(range).setCallout({ type: "info" }).run()
       },
       {
