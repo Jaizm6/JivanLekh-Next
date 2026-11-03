@@ -257,6 +257,7 @@ export const Icons = {
   heading5: mdiFormatHeader5,
   heading6: mdiFormatHeader6,
   paragraph: mdiFormatParagraph,
+  sketch: mdiPencil,
   indent: mdiFormatIndentIncrease,
   outdent: mdiFormatIndentDecrease,
   csv: mdiFileDelimitedOutline,
