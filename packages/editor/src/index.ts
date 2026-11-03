@@ -68,6 +68,7 @@ import { TaskListNode } from "./extensions/task-list/index.js";
 import TextDirection from "./extensions/text-direction/index.js";
 import { WebClipNode, WebClipOptions } from "./extensions/web-clip/index.js";
 import { AudioNode, AudioOptions } from "./extensions/audio/index.js";
+import type { AudioAttachment } from "./extensions/attachment/types.js";
 import { useEditor } from "./hooks/use-editor.js";
 import { usePermissionHandler } from "./hooks/use-permission-handler.js";
 import Toolbar from "./toolbar/index.js";
@@ -110,6 +111,10 @@ interface TiptapStorage {
         attachment: Pick<Attachment, "hash" | "type">
       ) => Promise<string | undefined>)
     | undefined;
+  saveAudioRecording?: (
+    blob: Blob,
+    filename: string
+  ) => Promise<AudioAttachment | undefined>;
 }
 
 declare module "@tiptap/core" {
