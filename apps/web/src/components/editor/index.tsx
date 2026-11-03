@@ -50,7 +50,7 @@ import { FlexScrollContainer } from "../scroll-container";
 import Tiptap, { OnChangeHandler } from "./tiptap";
 import Header from "./header";
 import { Attachment } from "../icons";
-import { AttachmentProgress, insertAttachments } from "./picker";
+import { AttachmentProgress, insertAttachments, saveAudioRecording } from "./picker";
 import { AttachFilesDialog } from "../../dialogs/attach-files-dialog";
 import { useEditorManager } from "./manager";
 import {
@@ -653,6 +653,17 @@ export function Editor(props: EditorProps) {
             });
 
           return result;
+        }}
+        onSaveAudioRecording={async (blob, filename) => {
+          if (!useUserStore.getState().isLoggedIn) {
+            ConfirmDialog.show({
+              title: strings.notLoggedIn(),
+              message: strings.loginToUploadAttachments(),
+              positiveButtonText: strings.okay()
+            });
+            return undefined;
+          }
+          return await saveAudioRecording(blob, filename);
         }}
         onAttachFiles={async (files) => {
           await AttachFilesDialog.show({
