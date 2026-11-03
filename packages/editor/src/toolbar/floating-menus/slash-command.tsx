@@ -148,6 +148,16 @@ export function SlashCommandFloatingMenu({ editor }: FloatingMenuProps) {
           editor.chain().focus().deleteRange(range).insertSketch().run()
       },
       {
+        id: "math-inline",
+        title: "Inline math",
+        description: "Insert an inline LaTeX expression",
+        aliases: ["inline math", "inline equation", "latex inline"],
+        icon: Icons.mathBlock,
+        color: COMMAND_COLORS.text,
+        run: (editor, range) =>
+          editor.chain().focus().deleteRange(range).insertMathInline().run()
+      },
+      {
         id: "audio",
         title: "Voice memo",
         description: "Record audio directly in this note",
