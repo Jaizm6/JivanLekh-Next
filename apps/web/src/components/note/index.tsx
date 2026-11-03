@@ -484,33 +484,43 @@ function DetailedChecklistProgressMetric({
           transform="rotate(-90 6 6)"
         />
       </Box>
-      <Text
+      <Box
         as="span"
         sx={{
           display: "inline-flex",
           alignItems: "center",
-          color,
-          fontSize: "10px",
-          fontWeight: "medium",
-          lineHeight: 1
-        }}
-      >
-        {symbol}
-      </Text>
-      <Text
-        as="span"
-        sx={{
-          display: "inline-flex",
-          alignItems: "center",
+          justifyContent: "center",
+          alignSelf: "center",
+          height: "100%",
           color,
           fontSize: "10px",
           fontWeight: "medium",
           lineHeight: 1,
-          fontVariantNumeric: "tabular-nums"
+          flex: "0 0 auto",
+          verticalAlign: "middle"
+        }}
+      >
+        {symbol}
+      </Box>
+      <Box
+        as="span"
+        sx={{
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          alignSelf: "center",
+          height: "100%",
+          color,
+          fontSize: "10px",
+          fontWeight: "medium",
+          lineHeight: 1,
+          fontVariantNumeric: "tabular-nums",
+          flex: "0 0 auto",
+          verticalAlign: "middle"
         }}
       >
         {count.checked}/{count.total}
-      </Text>
+      </Box>
     </Flex>
   );
 }
