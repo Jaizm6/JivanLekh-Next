@@ -128,6 +128,16 @@ export function SlashCommandFloatingMenu({ editor }: FloatingMenuProps) {
         run: (editor, range) => editor.chain().focus().deleteRange(range).setHorizontalRule().run()
       },
       {
+        id: "math",
+        title: "Math equation",
+        description: "Insert a block equation",
+        aliases: ["math", "equation", "latex", "formula"],
+        icon: Icons.mathBlock,
+        color: COMMAND_COLORS.text,
+        run: (editor, range) =>
+          editor.chain().focus().deleteRange(range).insertMathBlock().run()
+      },
+      {
         id: "image", title: "Image", description: "Choose an image to insert",
         aliases: ["picture", "photo", "media"], icon: Icons.image, color: COMMAND_COLORS.media,
         run: (editor, range) => {
