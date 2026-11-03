@@ -92,7 +92,7 @@ const COMPACT_PLACEHOLDER_ITEM_DATA: PlaceholderData = {
   lines: [{ height: 16, width: `random` }]
 };
 const COMPACT_NOTE_PLACEHOLDER_ITEM_DATA: PlaceholderData = {
-  padding: [11, 5, 11, 5],
+  padding: [10, 5, 10, 5],
   lines: [{ height: 16, width: `random` }]
 };
 const FULL_PLACEHOLDER_ITEM_DATA: PlaceholderData = {
