@@ -84,7 +84,7 @@ export function SlashCommandFloatingMenu({ editor }: FloatingMenuProps) {
       }),
       ...([1, 2, 3] as const).map((level) => ({
         id: `toggle-h${level}`,
-        title: `Toggle heading ${level}`,
+        title: `Toggle Heading ${level}`,
         description: `Collapsible heading · H${level}`,
         aliases: [`toggle h${level}`, `toggle${level}`, `collapsible ${level}`],
         icon: [
@@ -93,7 +93,7 @@ export function SlashCommandFloatingMenu({ editor }: FloatingMenuProps) {
           Icons.heading3
         ][level - 1],
         color: HeadingColors[level],
-        section: "Toggle headings",
+        section: "Toggle Headings",
         isToggle: true,
         run: (editor: Editor, range: SlashRange) =>
           editor
@@ -185,7 +185,7 @@ export function SlashCommandFloatingMenu({ editor }: FloatingMenuProps) {
         title: "Sketch",
         description: "Draw with a vector sketchpad",
         aliases: ["sketch", "draw", "canvas", "doodle"],
-        icon: Icons.mathBlock,
+        icon: Icons.sketch,
         color: COMMAND_COLORS.media,
         run: (editor, range) =>
           editor.chain().focus().deleteRange(range).insertSketch().run()
@@ -195,7 +195,7 @@ export function SlashCommandFloatingMenu({ editor }: FloatingMenuProps) {
         title: "Inline math",
         description: "Insert an inline LaTeX expression",
         aliases: ["inline math", "inline equation", "latex inline"],
-        icon: Icons.mathBlock,
+        icon: Icons.math,
         color: COMMAND_COLORS.text,
         run: (editor, range) =>
           editor.chain().focus().deleteRange(range).insertMathInline().run()
@@ -414,7 +414,7 @@ export function SlashCommandFloatingMenu({ editor }: FloatingMenuProps) {
                     <Text sx={{ display: "block", fontSize: "12px", fontWeight: 500, lineHeight: 1.2 }}>
                       {command.title}
                     </Text>
-                    <Text sx={{ display: "block", fontSize: "10.5px", lineHeight: 1.15, color: "paragraph-secondary", mt: "1px" }}>{command.description}</Text>
+                    <Text sx={{ display: "block", fontSize: "9.5px", lineHeight: 1.15, color: "paragraph-secondary", mt: "1px", whiteSpace: "normal", overflowWrap: "anywhere" }}>{command.description}</Text>
                   </Box>
                 </Button>
                 </Fragment>
