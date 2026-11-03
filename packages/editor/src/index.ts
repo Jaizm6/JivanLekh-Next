@@ -68,6 +68,7 @@ import { TaskListNode } from "./extensions/task-list/index.js";
 import TextDirection from "./extensions/text-direction/index.js";
 import { WebClipNode, WebClipOptions } from "./extensions/web-clip/index.js";
 import { AudioNode, AudioOptions } from "./extensions/audio/index.js";
+import { SketchNode } from "./extensions/sketch/index.js";
 import type { AudioAttachment } from "./extensions/attachment/types.js";
 import { useEditor } from "./hooks/use-editor.js";
 import { usePermissionHandler } from "./hooks/use-permission-handler.js";
@@ -351,6 +352,7 @@ const useTiptap = (
         KeyMap,
         WebClipNode,
         AudioNode,
+        SketchNode,
         CheckList,
         CheckListItem.configure({
           nested: true
