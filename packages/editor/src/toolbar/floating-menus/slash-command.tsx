@@ -138,6 +138,16 @@ export function SlashCommandFloatingMenu({ editor }: FloatingMenuProps) {
           editor.chain().focus().deleteRange(range).insertMathBlock().run()
       },
       {
+        id: "sketch",
+        title: "Sketch",
+        description: "Draw with a vector sketchpad",
+        aliases: ["sketch", "draw", "canvas", "doodle"],
+        icon: Icons.mathBlock,
+        color: COMMAND_COLORS.media,
+        run: (editor, range) =>
+          editor.chain().focus().deleteRange(range).insertSketch().run()
+      },
+      {
         id: "audio",
         title: "Voice memo",
         description: "Record audio directly in this note",
