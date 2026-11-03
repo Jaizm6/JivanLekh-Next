@@ -12,10 +12,10 @@ the Free Software Foundation, either version 3 of the License, or
 import { Box, Button, Flex, Text } from "@theme-ui/components";
 import { Icon } from "@notesnook/ui";
 import { TextSelection } from "@tiptap/pm/state";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { PopupWrapper } from "../../components/popup-presenter/index.js";
 import { Editor } from "../../types.js";
-import { Icons } from "../icons.js";
+import { HeadingColors, Icons } from "../icons.js";
 import { usePopupManager } from "../stores/toolbar-store.js";
 import { FloatingMenuProps } from "./types.js";
 
@@ -28,11 +28,12 @@ type SlashCommand = {
   aliases: string[];
   icon: string;
   color: string;
+  section?: string;
+  isToggle?: boolean;
   run: (editor: Editor, range: SlashRange) => void;
 };
 
 const COMMAND_COLORS = {
-  heading: "var(--jl-icon-heading)",
   list: "var(--jl-icon-list)",
   table: "var(--jl-icon-code)",
   text: "var(--jl-icon-link)",
@@ -58,20 +59,61 @@ export function SlashCommandFloatingMenu({ editor }: FloatingMenuProps) {
 
   const commands = useMemo<SlashCommand[]>(
     () => [
-      {
-        id: "paragraph", title: "Paragraph", description: "Regular text",
-        aliases: ["text", "p", "normal"], icon: Icons.heading, color: COMMAND_COLORS.text,
-        run: (editor, range) => editor.chain().focus().deleteRange(range).setParagraph().run()
-      },
       ...Array.from({ length: 6 }, (_, index) => {
         const level = (index + 1) as 1 | 2 | 3 | 4 | 5 | 6;
+        const icon = [
+          Icons.heading1,
+          Icons.heading2,
+          Icons.heading3,
+          Icons.heading4,
+          Icons.heading5,
+          Icons.heading6
+        ][index];
         return {
-          id: `h${level}`, title: `Heading ${level}`, description: `Section heading · H${level}`,
-          aliases: [`h${level}`, `heading ${level}`], icon: Icons.heading, color: COMMAND_COLORS.heading,
+          id: `h${level}`,
+          title: `Heading ${level}`,
+          description: `Section heading · H${level}`,
+          aliases: [`h${level}`, `heading ${level}`],
+          icon,
+          color: HeadingColors[level],
+          section: "Headings",
           run: (editor: Editor, range: SlashRange) =>
             editor.chain().focus().deleteRange(range).setHeading({ level }).run()
         };
       }),
+      ...([1, 2, 3] as const).map((level) => ({
+        id: `toggle-h${level}`,
+        title: `Toggle heading ${level}`,
+        description: `Collapsible heading · H${level}`,
+        aliases: [`toggle h${level}`, `toggle${level}`, `collapsible ${level}`],
+        icon: [
+          Icons.heading1,
+          Icons.heading2,
+          Icons.heading3
+        ][level - 1],
+        color: HeadingColors[level],
+        section: "Toggle headings",
+        isToggle: true,
+        run: (editor: Editor, range: SlashRange) =>
+          editor
+            .chain()
+            .focus()
+            .deleteRange(range)
+            .setHeading({ level })
+            .updateAttributes("heading", { collapsed: true })
+            .run()
+      })),
+      {
+        id: "paragraph",
+        title: "Paragraph",
+        description: "Plain text paragraph",
+        aliases: ["text", "p", "normal", "paragraph"],
+        icon: Icons.paragraph,
+        color: "paragraph-secondary",
+        section: "Text",
+        run: (editor, range) =>
+          editor.chain().focus().deleteRange(range).setParagraph().run()
+      },
       {
         id: "checklist", title: "Checklist", description: "Simple checkbox list",
         aliases: ["check", "checklist", "todo", "to-do"], icon: Icons.checklist, color: COMMAND_COLORS.list,
@@ -307,13 +349,19 @@ export function SlashCommandFloatingMenu({ editor }: FloatingMenuProps) {
           position={{ target: anchorRef.current || "mouse", isTargetAbsolute: true, location: "below", align: "start", yOffset: 5 }}
           sx={{ maxWidth: "calc(100vw - 24px)" }}
         >
-          <Box sx={{ width: 310, maxWidth: "calc(100vw - 24px)", maxHeight: 330, overflow: "hidden", bg: "background", border: "1px solid var(--border)", borderRadius: "default", boxShadow: "menu" }}>
+          <Box sx={{ width: 251, maxWidth: "calc(100vw - 24px)", maxHeight: 330, overflow: "hidden", bg: "background", border: "1px solid var(--border)", borderRadius: "default", boxShadow: "menu" }}>
             <Flex sx={{ px: 2, py: 1, alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid var(--separator)" }}>
               <Text variant="subBody" sx={{ color: "paragraph-secondary" }}>Insert block</Text>
               <Text variant="subBody" sx={{ color: "paragraph-secondary" }}>/{menuState.query}</Text>
             </Flex>
-            <Box sx={{ p: 1, maxHeight: 280, overflowY: "auto" }}>
+            <Box sx={{ p: "3px", maxHeight: 285, overflowY: "auto" }}>
               {filteredCommands.length ? filteredCommands.map((command, index) => (
+                <Fragment key={command.id}>
+                {command.section && command.section !== filteredCommands[index - 1]?.section ? (
+                  <Text sx={{ display: "block", px: "7px", pt: command.section === "Headings" ? "3px" : "7px", pb: "1px", fontSize: "9px", fontWeight: 650, letterSpacing: "0.045em", textTransform: "uppercase", color: "paragraph-secondary" }}>
+                    {command.section}
+                  </Text>
+                ) : null}
                 <Button
                   key={command.id}
                   type="button"
@@ -323,9 +371,14 @@ export function SlashCommandFloatingMenu({ editor }: FloatingMenuProps) {
                   onMouseDown={(event) => event.preventDefault()}
                   onMouseEnter={() => { selectedIndexRef.current = index; setSelectedIndex(index); }}
                   onClick={() => selectCommand(command)}
-                  sx={{ width: "100%", display: "flex", alignItems: "center", textAlign: "left", px: 2, py: 2, borderRadius: "small", bg: selectedIndex === index ? "background-selected" : "transparent" }}
+                  sx={{ width: "100%", display: "flex", alignItems: "center", textAlign: "left", px: "8px", py: "4px", minHeight: "34px", borderRadius: "small", bg: selectedIndex === index ? "background-selected" : "transparent", transition: "background 0.1s ease" }}
                 >
-                  {command.id === "task-list" ? (
+                  {command.isToggle ? (
+                    <Flex sx={{ alignItems: "center", gap: "1px", mr: 2, flexShrink: 0 }}>
+                      <Icon path={Icons.chevronRight} color={command.color} size={12} />
+                      <Icon path={command.icon} color={command.color} size={15} />
+                    </Flex>
+                  ) : command.id === "task-list" ? (
                     <svg
                       width="18"
                       height="18"
@@ -348,12 +401,13 @@ export function SlashCommandFloatingMenu({ editor }: FloatingMenuProps) {
                     <Icon path={command.icon} color={command.color} size={18} sx={{ mr: 2 }} />
                   )}
                   <Box sx={{ minWidth: 0, flex: 1 }}>
-                    <Text variant="body" sx={{ display: "block" }}>
+                    <Text sx={{ display: "block", fontSize: "12px", fontWeight: 500, lineHeight: 1.2 }}>
                       {command.title}
                     </Text>
-                    <Text variant="subBody" sx={{ color: "paragraph-secondary" }}>{command.description}</Text>
+                    <Text sx={{ display: "block", fontSize: "10.5px", lineHeight: 1.15, color: "paragraph-secondary", mt: "1px" }}>{command.description}</Text>
                   </Box>
                 </Button>
+                </Fragment>
               )) : (
                 <Text variant="body" sx={{ px: 2, py: 3, color: "paragraph-secondary" }}>No matching commands</Text>
               )}
