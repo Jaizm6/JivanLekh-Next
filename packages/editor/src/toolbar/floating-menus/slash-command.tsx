@@ -355,7 +355,16 @@ export function SlashCommandFloatingMenu({ editor }: FloatingMenuProps) {
               <Text variant="subBody" sx={{ color: "paragraph-secondary" }}>Insert block</Text>
               <Text variant="subBody" sx={{ color: "paragraph-secondary" }}>/{menuState.query}</Text>
             </Flex>
-            <Box sx={{ p: "3px", maxHeight: 285, overflowY: "auto" }}>
+            <Box
+              sx={{
+                p: "3px",
+                maxHeight: 285,
+                overflowY: "auto",
+                overscrollBehavior: "contain"
+              }}
+              onWheelCapture={(event) => event.stopPropagation()}
+              onWheel={(event) => event.stopPropagation()}
+            >
               {filteredCommands.length ? filteredCommands.map((command, index) => (
                 <Fragment key={command.id}>
                 {command.section && command.section !== filteredCommands[index - 1]?.section ? (
