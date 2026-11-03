@@ -152,6 +152,7 @@ const useTiptap = (
 ) => {
   const {
     getAttachmentData,
+    saveAudioRecording,
     downloadAttachment,
     openAttachmentPicker,
     previewAttachment,
@@ -410,6 +411,7 @@ const useTiptap = (
         editor.storage.copyToClipboard = copyToClipboard;
         editor.storage.createInternalLink = createInternalLink;
         editor.storage.getAttachmentData = getAttachmentData;
+        editor.storage.saveAudioRecording = saveAudioRecording;
         editor.storage.downloadCsvTable = downloadCsvTable;
         editor.storage.getLinkData = getLinkData;
 
@@ -424,6 +426,7 @@ const useTiptap = (
       downloadAttachment,
       openAttachmentPicker,
       getAttachmentData,
+      saveAudioRecording,
       onBeforeCreate,
       openLink,
       dateFormat,
