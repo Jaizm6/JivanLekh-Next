@@ -192,6 +192,11 @@ export async function saveAudioRecording(
 ): Promise<Extract<Attachment, { type: "audio" }> | undefined> {
   const mime = blob.type || "audio/webm";
   const file = new File([blob], filename, { type: mime });
+  const allowed = await checkFeature("fileSize", {
+    value: file.size,
+    type: "toast"
+  });
+  if (!allowed) return undefined;
   const attachment = await pickFile(file);
   if (!attachment) return undefined;
 
