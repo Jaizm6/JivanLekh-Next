@@ -59,7 +59,14 @@ import {
   mdiFormatColorText,
   mdiFormatFont,
   mdiFormatFontSizeIncrease,
+  mdiFormatHeader1,
+  mdiFormatHeader2,
+  mdiFormatHeader3,
+  mdiFormatHeader4,
+  mdiFormatHeader5,
+  mdiFormatHeader6,
   mdiFormatHeaderPound,
+  mdiFormatParagraph,
   mdiFormatIndentDecrease,
   mdiFormatIndentIncrease,
   mdiFormatItalic,
@@ -125,6 +132,15 @@ import {
   mdiPinOutline,
   mdiFileDelimitedOutline
 } from "@mdi/js";
+
+export const HeadingColors = {
+  1: "#e11d48",
+  2: "#ea580c",
+  3: "#16a34a",
+  4: "#2563eb",
+  5: "#9333ea",
+  6: "#4f46e5"
+} as const;
 
 export const Icons = {
   bold: mdiFormatBold,
@@ -234,6 +250,13 @@ export const Icons = {
   fontFamily: mdiFormatFont,
   fontSize: mdiFormatFontSizeIncrease,
   heading: mdiFormatHeaderPound,
+  heading1: mdiFormatHeader1,
+  heading2: mdiFormatHeader2,
+  heading3: mdiFormatHeader3,
+  heading4: mdiFormatHeader4,
+  heading5: mdiFormatHeader5,
+  heading6: mdiFormatHeader6,
+  paragraph: mdiFormatParagraph,
   indent: mdiFormatIndentIncrease,
   outdent: mdiFormatIndentDecrease,
   csv: mdiFileDelimitedOutline,
