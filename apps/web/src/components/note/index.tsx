@@ -272,45 +272,108 @@ function getChecklistProgressColor(kind: "expense" | "checklist") {
     : "light-dark(#047857, #6EE7B7)";
 }
 
-function CompactChecklistProgressBar({
+function CompactChecklistProgressMetric({
   kind,
-  count
+  count,
+  currency
 }: {
   kind: "expense" | "checklist";
   count: ChecklistCount;
+  currency?: string;
 }) {
   const color = getChecklistProgressColor(kind);
+  const backgroundColor =
+    kind === "expense"
+      ? "light-dark(rgba(180, 83, 9, 0.10), rgba(251, 146, 60, 0.14))"
+      : "light-dark(rgba(4, 120, 87, 0.10), rgba(52, 211, 153, 0.14))";
   const percent =
     count.total > 0
       ? Math.min(100, (count.checked / count.total) * 100)
       : 0;
+  const circumference = 2 * Math.PI * 4;
+  const progressLength = (percent / 100) * circumference;
+  const symbol = kind === "expense" ? currency || "¤" : "✓";
   const label = `${kind === "expense" ? "Expense checklist" : "Checklist"}: ${count.checked} of ${count.total} completed`;
 
   return (
-    <Box
+    <Flex
       role="img"
       aria-label={label}
       title={label}
       sx={{
-        width: "26px",
-        height: "3px",
+        display: "inline-flex",
+        alignItems: "center",
+        gap: "1px",
+        height: "13px",
+        px: "2px",
         borderRadius: "999px",
-        overflow: "hidden",
-        backgroundColor:
-          "light-dark(#E5E7EB, rgba(255, 255, 255, 0.18))",
-        flex: "0 0 26px"
+        backgroundColor,
+        boxSizing: "border-box",
+        flex: "0 0 auto",
+        flexShrink: 0,
+        whiteSpace: "nowrap",
+        lineHeight: 1
       }}
     >
       <Box
+        as="svg"
+        aria-hidden="true"
+        viewBox="0 0 10 10"
         sx={{
-          height: "100%",
-          width: `${percent}%`,
-          minWidth: percent > 0 ? "2px" : 0,
-          borderRadius: "999px",
-          backgroundColor: color
+          display: "block",
+          width: "10px",
+          height: "10px",
+          flex: "0 0 10px"
         }}
-      />
-    </Box>
+      >
+        <circle
+          cx="5"
+          cy="5"
+          r="4"
+          fill="none"
+          stroke="light-dark(#CBD5E1, rgba(255, 255, 255, 0.24))"
+          strokeWidth="1.2"
+        />
+        <circle
+          cx="5"
+          cy="5"
+          r="4"
+          fill="none"
+          stroke={color}
+          strokeWidth="1.2"
+          strokeDasharray={`${progressLength} ${circumference}`}
+          strokeLinecap="round"
+          transform="rotate(-90 5 5)"
+        />
+      </Box>
+      <Text
+        as="span"
+        sx={{
+          display: "inline-flex",
+          alignItems: "center",
+          color,
+          fontSize: "7px",
+          lineHeight: 1,
+          flex: "0 0 auto"
+        }}
+      >
+        {symbol}
+      </Text>
+      <Text
+        as="span"
+        sx={{
+          display: "inline-flex",
+          alignItems: "center",
+          color,
+          fontSize: "8px",
+          lineHeight: 1,
+          fontVariantNumeric: "tabular-nums",
+          flex: "0 0 auto"
+        }}
+      >
+        {count.checked}/{count.total}
+      </Text>
+    </Flex>
   );
 }
 
@@ -331,23 +394,23 @@ function CompactChecklistProgress({
       sx={{
         display: "flex",
         flexDirection: "column",
-        alignItems: "flex-end",
+        alignItems: "center",
         justifyContent: "center",
-        gap: hasBoth ? "2px" : 0,
-        width: "26px",
-        height: hasBoth ? "8px" : "3px",
-        flex: "0 0 26px",
+        gap: hasBoth ? "1px" : 0,
+        height: hasBoth ? "27px" : "13px",
+        flex: "0 0 auto",
         flexShrink: 0
       }}
     >
       {progress.expense ? (
-        <CompactChecklistProgressBar
+        <CompactChecklistProgressMetric
           kind="expense"
           count={progress.expense}
+          currency={progress.expenseCurrency}
         />
       ) : null}
       {progress.checklist ? (
-        <CompactChecklistProgressBar
+        <CompactChecklistProgressMetric
           kind="checklist"
           count={progress.checklist}
         />
