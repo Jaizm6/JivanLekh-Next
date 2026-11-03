@@ -32,7 +32,7 @@ export type AudioAttributes = AudioAttachment;
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {
     audio: {
-      insertAudio: (audio: AudioAttachment) => ReturnType;
+      insertAudio: (audio?: AudioAttachment) => ReturnType;
     };
   }
 }
@@ -59,10 +59,10 @@ export const AudioNode = Node.create<AudioOptions>({
         default: 0,
         rendered: false
       },
-      filename: getDataAttribute("filename"),
-      size: getDataAttribute("size"),
-      hash: getDataAttribute("hash"),
-      mime: getDataAttribute("mime")
+      filename: getDataAttribute("filename", "Voice memo"),
+      size: getDataAttribute("size", 0),
+      hash: getDataAttribute("hash", ""),
+      mime: getDataAttribute("mime", "audio/webm")
     };
   },
 
@@ -88,7 +88,13 @@ export const AudioNode = Node.create<AudioOptions>({
         ({ commands }) => {
           return commands.insertContent({
             type: this.name,
-            attrs: audio
+            attrs: audio || {
+              type: "audio",
+              filename: "Voice memo",
+              hash: "",
+              mime: "audio/webm",
+              size: 0
+            }
           });
         }
     };
