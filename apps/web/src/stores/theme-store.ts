@@ -31,70 +31,80 @@ import { ThemeWarmSepia } from "../common/theme-presets";
 import { ThemesRouter } from "../common/themes-router";
 
 type ColorScheme = "dark" | "light";
+
 class ThemeStore extends BaseStore<ThemeStore> {
-  colorScheme: "dark" | "light" = Config.get("colorScheme", "light");
-  darkTheme = getTheme("dark");
-  lightTheme = getTheme("light");
+  activeTheme = getActiveTheme();
+  colorScheme: ColorScheme = this.activeTheme.colorScheme;
+  darkTheme =
+    this.activeTheme.colorScheme === "dark" ? this.activeTheme : ThemeDark;
+  lightTheme =
+    this.activeTheme.colorScheme === "light" ? this.activeTheme : ThemeLight;
   followSystemTheme = Config.get("followSystemTheme", false);
 
   init = async () => {
-    const { darkTheme, lightTheme, colorScheme } = this.get();
-    await changeDesktopTheme(
-      colorScheme === "dark" ? darkTheme : lightTheme,
-      this.get().followSystemTheme
-    );
-    this.set({
-      darkTheme: await updateTheme(darkTheme),
-      lightTheme: await updateTheme(lightTheme)
-    });
+    const { activeTheme, followSystemTheme } = this.get();
+    await changeDesktopTheme(activeTheme, followSystemTheme);
+    const updatedTheme = await updateTheme(activeTheme);
+    if (updatedTheme !== activeTheme) this.selectTheme(updatedTheme, followSystemTheme);
   };
 
   setTheme = (theme: ThemeDefinition) => {
-    changeDesktopTheme(theme, this.get().followSystemTheme);
-    Config.set("colorScheme", theme.colorScheme);
-    Config.set(`theme:${theme.colorScheme}`, theme);
-    this.set({
-      [getKey(theme)]: theme,
-      colorScheme: theme.colorScheme
-    });
+    // Selecting a palette commits one active theme and leaves system mode.
+    this.selectTheme(theme, false);
   };
 
   setColorScheme = async (colorScheme: ColorScheme) => {
-    const theme = getTheme(colorScheme);
-    this.set({ colorScheme, [getKey(theme)]: theme });
-    Config.set("colorScheme", colorScheme);
-    Config.set(`theme:${colorScheme}`, theme);
-    changeDesktopTheme(theme, this.get().followSystemTheme);
+    const { activeTheme, followSystemTheme } = this.get();
+    const theme =
+      activeTheme.colorScheme === colorScheme
+        ? activeTheme
+        : getDefaultTheme(colorScheme);
+    this.selectTheme(theme, followSystemTheme);
 
     const updatedTheme = await updateTheme(theme);
-    Config.set(`theme:${colorScheme}`, updatedTheme);
-    this.set({ [getKey(updatedTheme)]: updatedTheme });
-
-    // Ignore a late response if the user has switched schemes again meanwhile.
-    if (this.get().colorScheme === colorScheme)
-      changeDesktopTheme(updatedTheme, this.get().followSystemTheme);
+    if (
+      updatedTheme !== theme &&
+      this.get().activeTheme.id === theme.id &&
+      this.get().colorScheme === colorScheme
+    ) {
+      this.selectTheme(updatedTheme, followSystemTheme);
+    }
   };
 
   toggleColorScheme = () => {
-    const theme = this.get().colorScheme;
-    this.setColorScheme(theme === "dark" ? "light" : "dark");
+    this.setColorScheme(this.get().colorScheme === "dark" ? "light" : "dark");
   };
 
   setFollowSystemTheme = async (followSystemTheme: boolean) => {
-    this.set({ followSystemTheme });
-    Config.set("followSystemTheme", followSystemTheme);
-    await desktop?.integration.changeTheme.mutate({
-      theme: followSystemTheme ? "system" : this.get().colorScheme
-    });
+    const theme = followSystemTheme
+      ? getDefaultTheme(getSystemColorScheme())
+      : this.get().activeTheme;
+    this.selectTheme(theme, followSystemTheme);
   };
 
   toggleFollowSystemTheme = () => {
-    const followSystemTheme = this.get().followSystemTheme;
-    this.setFollowSystemTheme(!followSystemTheme);
+    this.setFollowSystemTheme(!this.get().followSystemTheme);
   };
 
-  isThemeCurrentlyApplied = (id: string) => {
-    return this.get().darkTheme.id === id || this.get().lightTheme.id === id;
+  isThemeCurrentlyApplied = (id: string) => this.get().activeTheme.id === id;
+
+  private selectTheme = (
+    theme: ThemeDefinition,
+    followSystemTheme: boolean
+  ) => {
+    this.set({
+      activeTheme: theme,
+      colorScheme: theme.colorScheme,
+      darkTheme: theme.colorScheme === "dark" ? theme : ThemeDark,
+      lightTheme: theme.colorScheme === "light" ? theme : ThemeLight,
+      followSystemTheme
+    });
+
+    Config.set("theme:active", theme);
+    Config.set("colorScheme", theme.colorScheme);
+    Config.set(`theme:${theme.colorScheme}`, theme);
+    Config.set("followSystemTheme", followSystemTheme);
+    void changeDesktopTheme(theme, followSystemTheme);
   };
 }
 
@@ -103,19 +113,43 @@ const [useStore, store] = createStore<ThemeStore>(
 );
 export { useStore, store };
 
-function getKey(theme: ThemeDefinition) {
-  return theme.colorScheme === "dark" ? "darkTheme" : "lightTheme";
+function getActiveTheme(): ThemeDefinition {
+  const savedTheme = Config.get("theme:active", null as ThemeDefinition | null);
+  const followSystemTheme = Config.get("followSystemTheme", false);
+  const colorScheme = followSystemTheme
+    ? getSystemColorScheme()
+    : Config.get<ColorScheme>("colorScheme", savedTheme?.colorScheme || "light");
+  const defaultTheme = getDefaultTheme(colorScheme);
+
+  if (savedTheme?.colorScheme === colorScheme) return savedTheme;
+
+  // Migrate the current scheme's saved theme into the single active selection.
+  if (!savedTheme) {
+    const legacyTheme = Config.get(`theme:${colorScheme}`, defaultTheme);
+    if (legacyTheme.colorScheme === colorScheme) return legacyTheme;
+  }
+
+  return defaultTheme;
 }
 
-function getTheme(colorScheme: ColorScheme) {
-  const defaultTheme = colorScheme === "dark" ? ThemeDark : ThemeLight;
-  const savedTheme = Config.get(`theme:${colorScheme}`, defaultTheme);
-  // Keep persisted copies of the built-in theme in step with the bundled palette.
-  return savedTheme.id === defaultTheme.id ? defaultTheme : savedTheme;
+function getSystemColorScheme(): ColorScheme {
+  return window.matchMedia?.("(prefers-color-scheme: dark)").matches
+    ? "dark"
+    : "light";
+}
+
+function getDefaultTheme(colorScheme: ColorScheme) {
+  return colorScheme === "dark" ? ThemeDark : ThemeLight;
 }
 
 async function updateTheme(theme: ThemeDefinition) {
-  if (theme.id === ThemeLight.id || theme.id === ThemeWarmSepia.id) return theme;
+  if (
+    theme.id === ThemeLight.id ||
+    theme.id === ThemeDark.id ||
+    theme.id === ThemeWarmSepia.id
+  ) {
+    return theme;
+  }
   const { id, version } = theme;
   try {
     const updatedTheme = await ThemesRouter.updateTheme.query({
@@ -123,9 +157,8 @@ async function updateTheme(theme: ThemeDefinition) {
       id,
       version
     });
-    if (!updatedTheme) return theme;
-    return updatedTheme;
-  } catch (e) {
+    return updatedTheme || theme;
+  } catch {
     return theme;
   }
 }
