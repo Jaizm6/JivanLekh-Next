@@ -65,6 +65,7 @@ function logout() {
     "corsProxy",
     "theme:light",
     "theme:dark",
+    "theme:active",
     "colorScheme",
     "followSystemTheme",
     "doubleSpacedLines",
