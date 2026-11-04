@@ -280,7 +280,10 @@ const menuButtonStyle: CSSProperties = {
 export function BlockControls({ editor }: { editor: Editor }) {
   const [activeBlock, setActiveBlock] = useState<BlockTarget | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [menuPosition, setMenuPosition] = useState<MenuPosition | null>(null);
   const activeRef = useRef<BlockTarget | null>(null);
+  const handleRef = useRef<HTMLButtonElement | null>(null);
+  const menuRef = useRef<HTMLDivElement | null>(null);
   const menuOpenRef = useRef(false);
   const pointerRef = useRef<{ x: number; y: number } | null>(null);
   const dragCleanupRef = useRef<(() => void) | null>(null);
@@ -295,6 +298,23 @@ export function BlockControls({ editor }: { editor: Editor }) {
     if (!pointer || !editor.isEditable) return;
     updateActive(getBlockAt(editor, pointer.x, pointer.y));
   }, [editor, updateActive]);
+
+  const updateMenuPosition = useCallback(() => {
+    const handle = handleRef.current;
+    const menu = menuRef.current;
+    if (!handle || !menu || !menuOpenRef.current) return;
+
+    const next = calculateMenuPosition(handle, menu);
+    setMenuPosition((current) =>
+      current &&
+      current.left === next.left &&
+      current.top === next.top &&
+      current.width === next.width &&
+      current.maxHeight === next.maxHeight
+        ? current
+        : next
+    );
+  }, []);
 
   useEffect(() => {
     menuOpenRef.current = menuOpen;
@@ -384,9 +404,48 @@ export function BlockControls({ editor }: { editor: Editor }) {
     };
   }, [editor, refreshAtPointer, updateActive]);
 
+  useLayoutEffect(() => {
+    if (!menuOpen) return;
+
+    let frame = 0;
+    const schedulePositionUpdate = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(updateMenuPosition);
+    };
+
+    schedulePositionUpdate();
+    document.addEventListener("scroll", schedulePositionUpdate, true);
+    window.addEventListener("resize", schedulePositionUpdate);
+    window.visualViewport?.addEventListener("resize", schedulePositionUpdate);
+    window.visualViewport?.addEventListener("scroll", schedulePositionUpdate);
+    editor.on("transaction", schedulePositionUpdate);
+
+    const resizeObserver =
+      typeof ResizeObserver === "undefined"
+        ? null
+        : new ResizeObserver(schedulePositionUpdate);
+    if (activeBlock?.dom) resizeObserver?.observe(activeBlock.dom);
+    if (editor.view.dom) resizeObserver?.observe(editor.view.dom);
+    if (handleRef.current) resizeObserver?.observe(handleRef.current);
+    if (menuRef.current) resizeObserver?.observe(menuRef.current);
+
+    return () => {
+      cancelAnimationFrame(frame);
+      document.removeEventListener("scroll", schedulePositionUpdate, true);
+      window.removeEventListener("resize", schedulePositionUpdate);
+      window.visualViewport?.removeEventListener("resize", schedulePositionUpdate);
+      window.visualViewport?.removeEventListener("scroll", schedulePositionUpdate);
+      editor.off("transaction", schedulePositionUpdate);
+      resizeObserver?.disconnect();
+    };
+  }, [activeBlock, editor, menuOpen, updateMenuPosition]);
+
   const openBlockMenu = (target: BlockTarget) => {
     dispatchNodeSelection(editor, target.pos);
-    setMenuOpen((open) => !open);
+    const nextOpen = !menuOpenRef.current;
+    menuOpenRef.current = nextOpen;
+    setMenuPosition(null);
+    setMenuOpen(nextOpen);
   };
 
   const beginDrag = (
