@@ -386,6 +386,7 @@ export function BlockControls({ editor }: { editor: Editor }) {
         return;
       setMenuOpen(false);
       menuOpenRef.current = false;
+      setMenuPosition(null);
     };
 
     document.addEventListener("pointermove", onPointerMove, true);
@@ -601,6 +602,7 @@ export function BlockControls({ editor }: { editor: Editor }) {
   const runAction = (action: () => void) => {
     setMenuOpen(false);
     menuOpenRef.current = false;
+    setMenuPosition(null);
     action();
     refreshAtPointer();
   };
@@ -641,6 +643,7 @@ export function BlockControls({ editor }: { editor: Editor }) {
         <button
           aria-label="Drag block or open block menu"
           className="jl-block-control-button jl-block-drag-handle"
+          ref={handleRef}
           onPointerDown={(event) => beginDrag(event, activeBlock)}
           onKeyDown={(event) => {
             if (event.key === "Enter" || event.key === " ") {
@@ -662,31 +665,70 @@ export function BlockControls({ editor }: { editor: Editor }) {
         </button>
       </div>
 
-      {menuOpen ? (
-        <div
-          aria-label="Block actions"
-          className="jl-block-menu"
-          onKeyDown={(event) => {
-            if (event.key === "Escape") setMenuOpen(false);
-          }}
-          role="menu"
-          style={{
-            background: "var(--background, #fbf8f2)",
-            border: "1px solid var(--border, #e9e0d3)",
-            borderRadius: 9,
-            boxShadow: "0 10px 28px rgba(60,42,24,.12)",
-            boxSizing: "border-box",
-            left: menuLeft,
-            maxHeight: "min(70vh, 420px)",
-            width: "min(147px, calc(100vw - 16px))",
-            minWidth: 0,
-            overflowY: "auto",
-            padding: 4,
-            position: "fixed",
-            top: menuTop + 29,
-            zIndex: 1201
-          }}
-        >
+      {menuOpen
+        ? createPortal(
+            <div
+              aria-label="Block actions"
+              className="theme-scope-editorToolbar jl-block-menu"
+              onKeyDown={(event) => {
+                if (event.key === "Escape") {
+                  menuOpenRef.current = false;
+                  setMenuOpen(false);
+                  setMenuPosition(null);
+                }
+              }}
+              onWheelCapture={(event) => event.stopPropagation()}
+              ref={menuRef}
+              role="menu"
+              style={{
+                background: "var(--background)",
+                border: "1px solid var(--border)",
+                borderRadius: 9,
+                boxShadow: "0 10px 28px rgba(0,0,0,.16)",
+                boxSizing: "border-box",
+                left: menuPosition?.left ?? -10000,
+                maxHeight: menuPosition?.maxHeight ?? 420,
+                minWidth: 0,
+                overflowY: "auto",
+                overscrollBehavior: "contain",
+                padding: 4,
+                position: "fixed",
+                top: menuPosition?.top ?? -10000,
+                visibility: menuPosition ? "visible" : "hidden",
+                width: menuPosition?.width ?? BLOCK_MENU_WIDTH,
+                zIndex: 1201
+              }}
+            >
+              <style>{`
+                .jl-block-menu { color: var(--paragraph); }
+                .jl-block-menu .jl-block-menu-item {
+                  min-height: 30px;
+                  line-height: 1.35;
+                  color: var(--paragraph);
+                }
+                .jl-block-menu .jl-block-menu-item:hover,
+                .jl-block-menu .jl-block-menu-item:focus-visible {
+                  background: var(--background-secondary);
+                }
+                .jl-block-menu .jl-block-menu-divider {
+                  height: 1px;
+                  margin: 4px 5px;
+                  background: var(--separator);
+                }
+                .jl-block-menu .jl-block-menu-heading {
+                  padding: 6px 7px 3px;
+                  color: var(--paragraph-secondary);
+                  font-size: 9px;
+                  font-weight: 650;
+                  letter-spacing: .05em;
+                  text-transform: uppercase;
+                }
+                .jl-block-menu .jl-block-menu-danger { color: var(--paragraph-error); }
+                .jl-block-menu .jl-block-menu-item:focus-visible {
+                  outline: 2px solid var(--accent);
+                  outline-offset: -2px;
+                }
+              `}</style>
           <button
             className="jl-block-menu-item"
             onClick={() => runAction(() => duplicateBlock(editor, activeBlock.pos))}
@@ -768,8 +810,10 @@ export function BlockControls({ editor }: { editor: Editor }) {
           >
             Delete
           </button>
-        </div>
-      ) : null}
+            </div>,
+            document.body
+          )
+        : null}
     </>
   );
 }
