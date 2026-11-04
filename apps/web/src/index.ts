@@ -33,10 +33,13 @@ const colorScheme = JSON.parse(
 const root = document.querySelector("html");
 if (root) root.setAttribute("data-theme", colorScheme);
 
+const savedLightTheme = Config.get("theme:light", ThemeLight);
 const theme =
   colorScheme === "dark"
     ? Config.get("theme:dark", ThemeDark)
-    : Config.get("theme:light", ThemeLight);
+    : savedLightTheme.id === ThemeLight.id
+      ? ThemeLight
+      : savedLightTheme;
 const stylesheet = document.getElementById("theme-colors");
 if (theme) {
   const css = themeToCSS(theme);
