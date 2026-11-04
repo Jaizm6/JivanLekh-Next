@@ -194,7 +194,7 @@ function ThemesList() {
           top: 0,
           zIndex: 3,
           bg: "background",
-          pt: 2,
+          pt: 0,
           pb: 2
         }}
       >
