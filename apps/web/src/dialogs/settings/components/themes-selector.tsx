@@ -23,6 +23,7 @@ import { Box, Button, Flex, Input, Text } from "@theme-ui/components";
 import { CheckCircleOutline, Loading } from "../../../components/icons";
 import {
   THEME_COMPATIBILITY_VERSION,
+  ThemeWarmSepia,
   getPreviewColors,
   validateTheme
 } from "@notesnook/theme";
@@ -108,23 +109,46 @@ function ThemesList() {
     }
   );
 
-  const items = [
+  const normalizedSearch = searchQuery?.trim().toLowerCase();
+  const localThemeItems: ThemeMetadata[] =
+    (colorScheme === "all" || ThemeWarmSepia.colorScheme === colorScheme) &&
+    (!normalizedSearch ||
+      `${ThemeWarmSepia.name} ${ThemeWarmSepia.description} ${ThemeWarmSepia.tags?.join(" ")}`
+        .toLowerCase()
+        .includes(normalizedSearch))
+      ? [
+          {
+            ...ThemeWarmSepia,
+            totalInstalls: 0,
+            previewColors: getPreviewColors(ThemeWarmSepia)
+          }
+        ]
+      : [];
+
+  const items: ThemeMetadata[] = [
     {
       ...darkTheme,
       description: strings.defaultDarkThemeDesc(),
+      totalInstalls: 0,
       previewColors: getPreviewColors(darkTheme)
     },
     {
       ...lightTheme,
       description: strings.defaultLightThemeDesc(),
+      totalInstalls: 0,
       previewColors: getPreviewColors(lightTheme)
     },
+    ...localThemeItems,
     ...(themes.data?.pages.flatMap((a) => a.themes) || [])
   ];
 
   const setTheme = useCallback(
     async (theme: ThemeMetadata) => {
       if (isThemeCurrentlyApplied(theme.id)) return;
+      if (theme.id === ThemeWarmSepia.id) {
+        setCurrentTheme(ThemeWarmSepia);
+        return;
+      }
       setIsApplying(true);
       try {
         const fullTheme = await ThemesRouter.installTheme.query({
@@ -218,7 +242,7 @@ function ThemesList() {
           mt: 2
         }}
       >
-        {themes.isInitialLoading ? (
+        {themes.isInitialLoading && items.length === 0 ? (
           <Loader title={strings.loadingThemes()} />
         ) : (
           <VirtualizedGrid
