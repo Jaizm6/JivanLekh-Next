@@ -299,6 +299,26 @@ export function BlockControls({ editor }: { editor: Editor }) {
     updateActive(getBlockAt(editor, pointer.x, pointer.y));
   }, [editor, updateActive]);
 
+  const refreshActiveGeometry = useCallback(() => {
+    const current = activeRef.current;
+    if (!current?.dom.isConnected) return;
+    const rect = current.dom.getBoundingClientRect();
+    if (
+      rect.left === current.left &&
+      rect.top === current.top &&
+      rect.width === current.width &&
+      rect.height === current.height
+    )
+      return;
+    updateActive({
+      ...current,
+      left: rect.left,
+      top: rect.top,
+      width: rect.width,
+      height: rect.height
+    });
+  }, [updateActive]);
+
   const updateMenuPosition = useCallback(() => {
     const handle = handleRef.current;
     const menu = menuRef.current;
@@ -373,7 +393,10 @@ export function BlockControls({ editor }: { editor: Editor }) {
     };
 
     const onScroll = () => {
-      if (menuOpenRef.current) return;
+      if (menuOpenRef.current) {
+        refreshActiveGeometry();
+        return;
+      }
       refreshAtPointer();
     };
 
@@ -403,28 +426,29 @@ export function BlockControls({ editor }: { editor: Editor }) {
       editor.off("transaction", refreshAtPointer);
       dragCleanupRef.current?.();
     };
-  }, [editor, refreshAtPointer, updateActive]);
+  }, [editor, refreshActiveGeometry, refreshAtPointer, updateActive]);
 
   useLayoutEffect(() => {
     if (!menuOpen) return;
 
     let frame = 0;
-    const schedulePositionUpdate = () => {
+    const scheduleLayoutUpdate = () => {
+      refreshActiveGeometry();
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(updateMenuPosition);
     };
 
-    schedulePositionUpdate();
-    document.addEventListener("scroll", schedulePositionUpdate, true);
-    window.addEventListener("resize", schedulePositionUpdate);
-    window.visualViewport?.addEventListener("resize", schedulePositionUpdate);
-    window.visualViewport?.addEventListener("scroll", schedulePositionUpdate);
-    editor.on("transaction", schedulePositionUpdate);
+    scheduleLayoutUpdate();
+    document.addEventListener("scroll", scheduleLayoutUpdate, true);
+    window.addEventListener("resize", scheduleLayoutUpdate);
+    window.visualViewport?.addEventListener("resize", scheduleLayoutUpdate);
+    window.visualViewport?.addEventListener("scroll", scheduleLayoutUpdate);
+    editor.on("transaction", scheduleLayoutUpdate);
 
     const resizeObserver =
       typeof ResizeObserver === "undefined"
         ? null
-        : new ResizeObserver(schedulePositionUpdate);
+        : new ResizeObserver(scheduleLayoutUpdate);
     if (activeBlock?.dom) resizeObserver?.observe(activeBlock.dom);
     if (editor.view.dom) resizeObserver?.observe(editor.view.dom);
     if (handleRef.current) resizeObserver?.observe(handleRef.current);
@@ -432,14 +456,14 @@ export function BlockControls({ editor }: { editor: Editor }) {
 
     return () => {
       cancelAnimationFrame(frame);
-      document.removeEventListener("scroll", schedulePositionUpdate, true);
-      window.removeEventListener("resize", schedulePositionUpdate);
-      window.visualViewport?.removeEventListener("resize", schedulePositionUpdate);
-      window.visualViewport?.removeEventListener("scroll", schedulePositionUpdate);
-      editor.off("transaction", schedulePositionUpdate);
+      document.removeEventListener("scroll", scheduleLayoutUpdate, true);
+      window.removeEventListener("resize", scheduleLayoutUpdate);
+      window.visualViewport?.removeEventListener("resize", scheduleLayoutUpdate);
+      window.visualViewport?.removeEventListener("scroll", scheduleLayoutUpdate);
+      editor.off("transaction", scheduleLayoutUpdate);
       resizeObserver?.disconnect();
     };
-  }, [activeBlock, editor, menuOpen, updateMenuPosition]);
+  }, [activeBlock, editor, menuOpen, refreshActiveGeometry, updateMenuPosition]);
 
   const openBlockMenu = (target: BlockTarget) => {
     dispatchNodeSelection(editor, target.pos);
