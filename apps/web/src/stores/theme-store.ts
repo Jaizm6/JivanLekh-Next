@@ -104,12 +104,14 @@ function getKey(theme: ThemeDefinition) {
 }
 
 function getTheme(colorScheme: ColorScheme) {
-  return colorScheme === "dark"
-    ? Config.get("theme:dark", ThemeDark)
-    : Config.get("theme:light", ThemeLight);
+  const defaultTheme = colorScheme === "dark" ? ThemeDark : ThemeLight;
+  const savedTheme = Config.get(`theme:${colorScheme}`, defaultTheme);
+  // Keep persisted copies of the built-in theme in step with the bundled palette.
+  return savedTheme.id === defaultTheme.id ? defaultTheme : savedTheme;
 }
 
 async function updateTheme(theme: ThemeDefinition) {
+  if (theme.id === ThemeLight.id) return ThemeLight;
   const { id, version } = theme;
   try {
     const updatedTheme = await ThemesRouter.updateTheme.query({
