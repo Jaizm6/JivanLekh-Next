@@ -25,7 +25,8 @@ import {
   THEME_COMPATIBILITY_VERSION,
   ThemeDark,
   ThemeDefinition,
-  ThemeLight
+  ThemeLight,
+  ThemeWarmSepia
 } from "@notesnook/theme";
 import { ThemesRouter } from "../common/themes-router";
 
@@ -61,14 +62,17 @@ class ThemeStore extends BaseStore<ThemeStore> {
   setColorScheme = async (colorScheme: ColorScheme) => {
     const theme = getTheme(colorScheme);
     this.set({ colorScheme, [getKey(theme)]: theme });
+    Config.set("colorScheme", colorScheme);
+    Config.set(`theme:${colorScheme}`, theme);
     changeDesktopTheme(theme, this.get().followSystemTheme);
 
-    updateTheme(theme).then((theme) => {
-      changeDesktopTheme(theme, this.get().followSystemTheme);
-      Config.set("colorScheme", colorScheme);
-      Config.set(`theme:${theme.colorScheme}`, theme);
-      this.set({ [getKey(theme)]: theme });
-    });
+    const updatedTheme = await updateTheme(theme);
+    Config.set(`theme:${colorScheme}`, updatedTheme);
+    this.set({ [getKey(updatedTheme)]: updatedTheme });
+
+    // Ignore a late response if the user has switched schemes again meanwhile.
+    if (this.get().colorScheme === colorScheme)
+      changeDesktopTheme(updatedTheme, this.get().followSystemTheme);
   };
 
   toggleColorScheme = () => {
@@ -111,7 +115,7 @@ function getTheme(colorScheme: ColorScheme) {
 }
 
 async function updateTheme(theme: ThemeDefinition) {
-  if (theme.id === ThemeLight.id) return ThemeLight;
+  if (theme.id === ThemeLight.id || theme.id === ThemeWarmSepia.id) return theme;
   const { id, version } = theme;
   try {
     const updatedTheme = await ThemesRouter.updateTheme.query({
