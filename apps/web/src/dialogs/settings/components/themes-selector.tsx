@@ -23,6 +23,8 @@ import { Box, Button, Flex, Input, Text } from "@theme-ui/components";
 import { CheckCircleOutline, Loading } from "../../../components/icons";
 import {
   THEME_COMPATIBILITY_VERSION,
+  ThemeDark,
+  ThemeLight,
   ThemeWarmSepia,
   getPreviewColors,
   validateTheme
@@ -125,20 +127,34 @@ function ThemesList() {
         ]
       : [];
 
+  const builtInThemeItems: ThemeMetadata[] = [ThemeDark, ThemeLight].map(
+    (theme) => ({
+      ...theme,
+      description:
+        theme.colorScheme === "dark"
+          ? strings.defaultDarkThemeDesc()
+          : strings.defaultLightThemeDesc(),
+      totalInstalls: 0,
+      previewColors: getPreviewColors(theme)
+    })
+  );
+  const builtInThemeIds = new Set([
+    ThemeDark.id,
+    ThemeLight.id,
+    ThemeWarmSepia.id
+  ]);
+  const appliedCustomThemeItems: ThemeMetadata[] = [darkTheme, lightTheme]
+    .filter((theme) => !builtInThemeIds.has(theme.id))
+    .map((theme) => ({
+      ...theme,
+      totalInstalls: 0,
+      previewColors: getPreviewColors(theme)
+    }));
+
   const items: ThemeMetadata[] = [
-    {
-      ...darkTheme,
-      description: strings.defaultDarkThemeDesc(),
-      totalInstalls: 0,
-      previewColors: getPreviewColors(darkTheme)
-    },
-    {
-      ...lightTheme,
-      description: strings.defaultLightThemeDesc(),
-      totalInstalls: 0,
-      previewColors: getPreviewColors(lightTheme)
-    },
+    ...builtInThemeItems,
     ...localThemeItems,
+    ...appliedCustomThemeItems,
     ...(themes.data?.pages.flatMap((a) => a.themes) || [])
   ];
 
@@ -147,6 +163,14 @@ function ThemesList() {
       if (isThemeCurrentlyApplied(theme.id)) return;
       if (theme.id === ThemeWarmSepia.id) {
         setCurrentTheme(ThemeWarmSepia);
+        return;
+      }
+      if (theme.id === ThemeLight.id) {
+        setCurrentTheme(ThemeLight);
+        return;
+      }
+      if (theme.id === ThemeDark.id) {
+        setCurrentTheme(ThemeDark);
         return;
       }
       setIsApplying(true);
