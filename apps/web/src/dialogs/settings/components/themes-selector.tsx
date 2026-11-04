@@ -25,11 +25,11 @@ import {
   THEME_COMPATIBILITY_VERSION,
   ThemeDark,
   ThemeLight,
-  ThemeWarmSepia,
   getPreviewColors,
   validateTheme
 } from "@notesnook/theme";
 import { debounce } from "@notesnook/common";
+import { ThemeWarmSepia } from "../../../common/theme-presets";
 import { useStore as useThemeStore } from "../../../stores/theme-store";
 import { useStore as useUserStore } from "../../../stores/user-store";
 import {
