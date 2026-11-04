@@ -201,6 +201,9 @@ export const SettingsDialog = DialogManager.register(function SettingsDialog(
       (g) => g.section === (props.activeSection || "profile")
     )
   );
+  const isThemeSettingsView = activeSettings.some((group) =>
+    group.settings.some((setting) => setting.key === "themes")
+  );
 
   return (
     <Dialog
@@ -208,12 +211,16 @@ export const SettingsDialog = DialogManager.register(function SettingsDialog(
       width={"968px"}
       onClose={() => props.onClose(false)}
       noScroll
-      sx={{ bg: "transparent" }}
+      sx={{
+        bg: "transparent",
+        height: "calc(100dvh - 12px)",
+        maxHeight: "calc(100dvh - 12px)"
+      }}
     >
       <Flex
         sx={{
-          height: "90vh",
-          maxHeight: "calc(100dvh - 24px)",
+          height: "calc(100dvh - 12px)",
+          maxHeight: "calc(100dvh - 12px)",
           overflow: "hidden"
         }}
       >
@@ -233,6 +240,7 @@ export const SettingsDialog = DialogManager.register(function SettingsDialog(
             flex: 1,
             flexDirection: "column",
             padding: 20,
+            paddingTop: isThemeSettingsView ? 0 : 20,
             gap: 20,
             minHeight: "auto",
             overflow: "auto"
