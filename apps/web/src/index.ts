@@ -27,19 +27,27 @@ import { ThemeDark, ThemeLight, themeToCSS } from "@notesnook/theme";
 import Config from "./utils/config";
 import { initLocale } from "./common/locale";
 
-const colorScheme = JSON.parse(
-  window.localStorage.getItem("colorScheme") || '"light"'
-);
+const followSystemTheme = Config.get("followSystemTheme", false);
+const savedTheme = Config.get("theme:active", null as any);
+const storedColorScheme = Config.get<"dark" | "light">("colorScheme", "light");
+const colorScheme = followSystemTheme
+  ? window.matchMedia?.("(prefers-color-scheme: dark)").matches
+    ? "dark"
+    : "light"
+  : storedColorScheme;
 const root = document.querySelector("html");
 if (root) root.setAttribute("data-theme", colorScheme);
 
-const savedLightTheme = Config.get("theme:light", ThemeLight);
+const defaultTheme = colorScheme === "dark" ? ThemeDark : ThemeLight;
+const legacyTheme = Config.get(`theme:${colorScheme}`, defaultTheme);
 const theme =
-  colorScheme === "dark"
-    ? Config.get("theme:dark", ThemeDark)
-    : savedLightTheme.id === ThemeLight.id
-      ? ThemeLight
-      : savedLightTheme;
+  savedTheme?.colorScheme === colorScheme
+    ? savedTheme
+    : savedTheme
+      ? defaultTheme
+      : legacyTheme.id === defaultTheme.id
+        ? defaultTheme
+        : legacyTheme;
 const stylesheet = document.getElementById("theme-colors");
 if (theme) {
   const css = themeToCSS(theme);
