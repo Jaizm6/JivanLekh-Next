@@ -113,7 +113,12 @@ export default defineConfig({
     ]
   },
   server: {
-    port: 3000
+    // Editor assets are served from the sibling packages/editor directory.
+    fs: {
+      allow: [path.resolve(__dirname, "../..")]
+    },
+    port: 3001,
+    strictPort: true
   },
   worker: {
     format: "es",
