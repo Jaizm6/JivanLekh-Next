@@ -350,10 +350,10 @@ export function SlashCommandFloatingMenu({ editor }: FloatingMenuProps) {
           position={{ target: anchorRef.current || "mouse", isTargetAbsolute: true, location: "below", align: "start", yOffset: 5 }}
           sx={{ maxWidth: "calc(100vw - 24px)" }}
         >
-          <Box sx={{ width: 251, maxWidth: "calc(100vw - 24px)", maxHeight: 330, overflow: "hidden", bg: "#fbf8f2", border: "1px solid #e9e0d3", borderRadius: "12px", boxShadow: "0 10px 28px rgba(60,42,24,0.12)" }}>
-            <Flex sx={{ px: 2, py: 1, alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid #e9e0d3" }}>
-              <Text variant="subBody" sx={{ color: "#9e948a" }}>Insert block</Text>
-              <Text variant="subBody" sx={{ color: "#9e948a" }}>/{menuState.query}</Text>
+          <Box sx={{ width: 251, maxWidth: "calc(100vw - 24px)", maxHeight: 330, overflow: "hidden", bg: "var(--background, #fbf8f2)", border: "1px solid var(--border, #e9e0d3)", borderRadius: "12px", boxShadow: "0 10px 28px rgba(60,42,24,0.12)" }}>
+            <Flex sx={{ px: 2, py: 1, alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid var(--separator, #e9e0d3)" }}>
+              <Text variant="subBody" sx={{ color: "var(--paragraph-secondary, #9e948a)" }}>Insert block</Text>
+              <Text variant="subBody" sx={{ color: "var(--paragraph-secondary, #9e948a)" }}>/{menuState.query}</Text>
             </Flex>
             <Box
               sx={{
@@ -368,7 +368,7 @@ export function SlashCommandFloatingMenu({ editor }: FloatingMenuProps) {
               {filteredCommands.length ? filteredCommands.map((command, index) => (
                 <Fragment key={command.id}>
                 {command.section && command.section !== filteredCommands[index - 1]?.section ? (
-                  <Text sx={{ display: "block", px: "7px", pt: command.section === "Headings" ? "3px" : "7px", pb: "1px", fontSize: "9px", fontWeight: 650, letterSpacing: "0.045em", textTransform: "uppercase", color: "#9e948a" }}>
+                  <Text sx={{ display: "block", px: "7px", pt: command.section === "Headings" ? "3px" : "7px", pb: "1px", fontSize: "9px", fontWeight: 650, letterSpacing: "0.045em", textTransform: "uppercase", color: "var(--paragraph-secondary, #9e948a)" }}>
                     {command.section}
                   </Text>
                 ) : null}
@@ -381,7 +381,7 @@ export function SlashCommandFloatingMenu({ editor }: FloatingMenuProps) {
                   onMouseDown={(event) => event.preventDefault()}
                   onMouseEnter={() => { selectedIndexRef.current = index; setSelectedIndex(index); }}
                   onClick={() => selectCommand(command)}
-                  sx={{ width: "100%", display: "flex", alignItems: "center", textAlign: "left", px: "8px", py: "4px", minHeight: "34px", borderRadius: "small", bg: selectedIndex === index ? "#f0e9dc" : "transparent", color: "#2e2824", transition: "background 0.1s ease" }}
+                  sx={{ width: "100%", display: "flex", alignItems: "center", textAlign: "left", px: "8px", py: "4px", minHeight: "34px", borderRadius: "small", bg: selectedIndex === index ? "var(--background-selected, var(--background-secondary, #f0e9dc))" : "transparent", color: "var(--paragraph, #2e2824)", transition: "background 0.1s ease" }}
                 >
                   {command.isToggle ? (
                     <Flex sx={{ alignItems: "center", gap: "1px", mr: 2, flexShrink: 0 }}>
@@ -411,10 +411,10 @@ export function SlashCommandFloatingMenu({ editor }: FloatingMenuProps) {
                     <Icon path={command.icon} color={command.color} size={18} sx={{ mr: 2 }} />
                   )}
                   <Box sx={{ minWidth: 0, flex: 1 }}>
-                    <Text sx={{ display: "block", fontSize: "12px", fontWeight: 500, lineHeight: 1.2, color: "#2e2824" }}>
+                    <Text sx={{ display: "block", fontSize: "12px", fontWeight: 500, lineHeight: 1.2, color: "var(--paragraph, #2e2824)" }}>
                       {command.title}
                     </Text>
-                    <Text sx={{ display: "block", fontSize: "9.5px", lineHeight: 1.15, color: "#9e948a", mt: "1px", whiteSpace: "normal", overflowWrap: "anywhere" }}>{command.description}</Text>
+                    <Text sx={{ display: "block", fontSize: "9.5px", lineHeight: 1.15, color: "var(--paragraph-secondary, #9e948a)", mt: "1px", whiteSpace: "normal", overflowWrap: "anywhere" }}>{command.description}</Text>
                   </Box>
                 </Button>
                 </Fragment>
