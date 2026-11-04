@@ -45,7 +45,8 @@ class ThemeStore extends BaseStore<ThemeStore> {
     const { activeTheme, followSystemTheme } = this.get();
     await changeDesktopTheme(activeTheme, followSystemTheme);
     const updatedTheme = await updateTheme(activeTheme);
-    if (updatedTheme !== activeTheme) this.selectTheme(updatedTheme, followSystemTheme);
+    // Persist the migration from the old per-scheme theme slots.
+    this.selectTheme(updatedTheme, followSystemTheme);
   };
 
   setTheme = (theme: ThemeDefinition) => {
@@ -102,7 +103,8 @@ class ThemeStore extends BaseStore<ThemeStore> {
 
     Config.set("theme:active", theme);
     Config.set("colorScheme", theme.colorScheme);
-    Config.set(`theme:${theme.colorScheme}`, theme);
+    Config.remove("theme:light");
+    Config.remove("theme:dark");
     Config.set("followSystemTheme", followSystemTheme);
     void changeDesktopTheme(theme, followSystemTheme);
   };
