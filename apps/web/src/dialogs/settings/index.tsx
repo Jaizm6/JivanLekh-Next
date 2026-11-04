@@ -212,7 +212,8 @@ export const SettingsDialog = DialogManager.register(function SettingsDialog(
     >
       <Flex
         sx={{
-          height: "80vw",
+          height: "90vh",
+          maxHeight: "calc(100dvh - 24px)",
           overflow: "hidden"
         }}
       >
