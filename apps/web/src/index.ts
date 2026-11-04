@@ -30,11 +30,12 @@ import { initLocale } from "./common/locale";
 const followSystemTheme = Config.get("followSystemTheme", false);
 const savedTheme = Config.get("theme:active", null as any);
 const storedColorScheme = Config.get<"dark" | "light">("colorScheme", "light");
-const colorScheme = followSystemTheme
-  ? window.matchMedia?.("(prefers-color-scheme: dark)").matches
+const systemColorScheme =
+  typeof window.matchMedia === "function" &&
+  window.matchMedia("(prefers-color-scheme: dark)").matches
     ? "dark"
-    : "light"
-  : storedColorScheme;
+    : "light";
+const colorScheme = followSystemTheme ? systemColorScheme : storedColorScheme;
 const root = document.querySelector("html");
 if (root) root.setAttribute("data-theme", colorScheme);
 
