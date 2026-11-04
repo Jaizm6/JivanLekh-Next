@@ -135,7 +135,8 @@ function getActiveTheme(): ThemeDefinition {
 }
 
 function getSystemColorScheme(): ColorScheme {
-  return window.matchMedia?.("(prefers-color-scheme: dark)").matches
+  return typeof window.matchMedia === "function" &&
+    window.matchMedia("(prefers-color-scheme: dark)").matches
     ? "dark"
     : "light";
 }
