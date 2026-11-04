@@ -209,9 +209,10 @@ const menuButtonStyle: CSSProperties = {
   cursor: "pointer",
   display: "block",
   font: "inherit",
-  padding: "7px 10px",
+  padding: "5px 7px",
   textAlign: "left",
   whiteSpace: "nowrap",
+  fontSize: 11,
   width: "100%"
 };
 
@@ -527,14 +528,14 @@ export function BlockControls({ editor }: { editor: Editor }) {
               openBlockMenu(activeBlock);
             }
           }}
-          style={{ ...controlButtonStyle, cursor: "grab", touchAction: "none", width: 32, height: 32 }}
+          style={{ ...controlButtonStyle, cursor: "grab", touchAction: "none", width: 27, height: 27 }}
           title="Drag to move; click for block actions"
           type="button"
         >
-          <svg aria-hidden="true" height="18" viewBox="0 0 16 16" width="18">
-            {[4, 8, 12].flatMap((x) =>
-              [4, 8, 12].map((y) => (
-                <circle cx={x} cy={y} fill="currentColor" key={x + "-" + y} r="1.15" />
+          <svg aria-hidden="true" height="14" viewBox="0 0 16 16" width="14">
+            {[5, 11].flatMap((x) =>
+              [3, 8, 13].map((y) => (
+                <circle cx={x} cy={y} fill="currentColor" key={x + "-" + y} r="1" />
               ))
             )}
           </svg>
@@ -550,15 +551,17 @@ export function BlockControls({ editor }: { editor: Editor }) {
           }}
           role="menu"
           style={{
-            background: "var(--background, #fff)",
-            border: "1px solid var(--border, #ddd)",
-            borderRadius: 8,
-            boxShadow: "0 8px 28px rgba(0,0,0,.16)",
+            background: "var(--background, #fbf8f2)",
+            border: "1px solid var(--border, #e9e0d3)",
+            borderRadius: 9,
+            boxShadow: "0 10px 28px rgba(60,42,24,.12)",
+            boxSizing: "border-box",
             left: menuLeft,
             maxHeight: "min(70vh, 420px)",
-            minWidth: 176,
+            width: "min(147px, calc(100vw - 16px))",
+            minWidth: 0,
             overflowY: "auto",
-            padding: 5,
+            padding: 4,
             position: "fixed",
             top: menuTop + 29,
             zIndex: 1201
