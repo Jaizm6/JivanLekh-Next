@@ -285,7 +285,7 @@ function ThemesList() {
           <Loader title={strings.loadingThemes()} />
         ) : (
           <VirtualizedGrid
-            columns={3}
+            columns={4}
             items={items}
             getItemKey={(index) => items[index].id}
             estimatedSize={112}
