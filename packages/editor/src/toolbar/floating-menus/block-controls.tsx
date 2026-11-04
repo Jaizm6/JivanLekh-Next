@@ -5,7 +5,8 @@ Notion-style controls for top-level editor blocks. The document model remains
 ProseMirror/Tiptap, so existing note content and block IDs stay compatible.
 */
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import type { CSSProperties, PointerEvent as ReactPointerEvent } from "react";
 import { Node as ProseMirrorNode } from "@tiptap/pm/model";
 import { NodeSelection, TextSelection } from "@tiptap/pm/state";
@@ -20,6 +21,66 @@ type BlockTarget = {
   width: number;
   height: number;
 };
+
+type MenuPosition = {
+  left: number;
+  top: number;
+  width: number;
+  maxHeight: number;
+};
+
+const BLOCK_MENU_WIDTH = 147;
+const BLOCK_MENU_GAP = 6;
+const VIEWPORT_MARGIN = 8;
+
+function calculateMenuPosition(
+  handle: HTMLElement,
+  menu: HTMLElement
+): MenuPosition {
+  const rect = handle.getBoundingClientRect();
+  const visualViewport = window.visualViewport;
+  const viewportLeft = visualViewport?.offsetLeft ?? 0;
+  const viewportTop = visualViewport?.offsetTop ?? 0;
+  const viewportWidth = visualViewport?.width ?? window.innerWidth;
+  const viewportHeight = visualViewport?.height ?? window.innerHeight;
+  const minLeft = viewportLeft + VIEWPORT_MARGIN;
+  const maxRight = viewportLeft + viewportWidth - VIEWPORT_MARGIN;
+  const minTop = viewportTop + VIEWPORT_MARGIN;
+  const maxBottom = viewportTop + viewportHeight - VIEWPORT_MARGIN;
+  const width = Math.max(
+    1,
+    Math.min(BLOCK_MENU_WIDTH, maxRight - minLeft)
+  );
+
+  const rightOfHandle = rect.right + BLOCK_MENU_GAP;
+  const leftOfHandle = rect.left - BLOCK_MENU_GAP - width;
+  const left =
+    rightOfHandle + width <= maxRight
+      ? rightOfHandle
+      : leftOfHandle >= minLeft
+        ? leftOfHandle
+        : Math.max(minLeft, Math.min(rect.left, maxRight - width));
+
+  const desiredHeight = Math.min(
+    menu.scrollHeight,
+    420,
+    Math.floor(viewportHeight * 0.7)
+  );
+  const spaceBelow = Math.max(0, maxBottom - rect.top - BLOCK_MENU_GAP);
+  const spaceAbove = Math.max(0, rect.bottom - minTop - BLOCK_MENU_GAP);
+  const placeBelow = spaceBelow >= desiredHeight || spaceBelow >= spaceAbove;
+  const availableHeight = placeBelow ? spaceBelow : spaceAbove;
+  const maxHeight = Math.max(1, Math.min(desiredHeight, availableHeight));
+  const unclampedTop = placeBelow
+    ? rect.top
+    : rect.bottom - maxHeight;
+  const top = Math.max(
+    minTop,
+    Math.min(unclampedTop, maxBottom - maxHeight)
+  );
+
+  return { left, top, width, maxHeight };
+}
 
 function getBlockAt(editor: Editor, x: number, y: number): BlockTarget | null {
   if (editor.isDestroyed || editor.view.isDestroyed) return null;
