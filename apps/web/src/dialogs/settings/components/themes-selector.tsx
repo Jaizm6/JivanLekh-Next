@@ -43,7 +43,6 @@ import { Loader } from "../../../components/loader";
 import { showToast } from "../../../utils/toast";
 import { showFilePicker, readFile } from "../../../utils/file-picker";
 import { VirtualizedGrid } from "../../../components/virtualized-grid";
-import { ThemeDetailsDialog } from "../../theme-details-dialog";
 import { strings } from "@notesnook/intl";
 
 const ThemesClient = ThemesTRPC.createClient({
@@ -321,10 +320,17 @@ function ThemeItem(props: ThemeItemProps) {
           ".set-as-button": { visibility: "visible" }
         }
       }}
-      onClick={async () => {
-        if (await ThemeDetailsDialog.show({ theme })) {
-          await setTheme(theme);
+      role="button"
+      tabIndex={0}
+      aria-pressed={isApplied}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          if (!isApplied) void setTheme(theme);
         }
+      }}
+      onClick={() => {
+        if (!isApplied) void setTheme(theme);
       }}
     >
       <ThemePreview theme={theme} />
@@ -342,25 +348,12 @@ function ThemeItem(props: ThemeItemProps) {
         </Text>
         {isApplied ? (
           <CheckCircleOutline color="accent" size={20} />
+        ) : isApplying ? (
+          <Loading color="accent" size={18} />
         ) : (
-          <Button
-            className="set-as-button"
-            variant="secondary"
-            sx={{ visibility: "hidden", bg: "background" }}
-            onClick={(e) => {
-              e.stopPropagation();
-              setTheme(theme);
-            }}
-            disabled={isApplying}
-          >
-            {isApplying ? (
-              <Loading color="accent" size={18} />
-            ) : theme.colorScheme === "dark" ? (
-              strings.setAsDarkTheme()
-            ) : (
-              strings.setAsLightTheme()
-            )}
-          </Button>
+          <Text variant="subBody" sx={{ color: "accent", fontWeight: 600 }}>
+            {strings.setAsDefault()}
+          </Text>
         )}
       </Flex>
     </Flex>
