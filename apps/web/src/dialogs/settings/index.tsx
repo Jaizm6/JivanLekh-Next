@@ -421,6 +421,9 @@ function SettingsGroupComponent(props: { item: SettingsGroup }) {
 
   const allHidden = item.settings.every((s) => s.isHidden?.());
   const hasComponentHeader = typeof item.header !== "string";
+  const hasStickyThemeSelector = item.settings.some(
+    (setting) => setting.key === "themes"
+  );
   if (item.isHidden?.() || (allHidden && !hasComponentHeader)) return null;
 
   return (
@@ -429,7 +432,7 @@ function SettingsGroupComponent(props: { item: SettingsGroup }) {
         flexDirection: "column",
         flexShrink: 0,
         gap: 2,
-        overflow: "hidden"
+        overflow: hasStickyThemeSelector ? "visible" : "hidden"
       }}
     >
       {typeof item.header === "string" ? (
