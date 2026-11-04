@@ -63,8 +63,6 @@ function logout() {
     "backupStorageLocation",
     "serverUrls",
     "corsProxy",
-    "theme:light",
-    "theme:dark",
     "theme:active",
     "colorScheme",
     "followSystemTheme",
