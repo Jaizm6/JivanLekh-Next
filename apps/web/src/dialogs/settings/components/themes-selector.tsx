@@ -352,11 +352,11 @@ function ThemeItem({
         textAlign: "left",
         gap: 2,
         p: 2,
-        borderRadius: "extraLarge",
+        borderRadius: "18px",
         border: isSelected
           ? "2px solid var(--accent)"
           : "1px solid var(--border)",
-        bg: isSelected ? "background-selected" : "background-secondary",
+        bg: isSelected ? "shade" : "background-secondary",
         transition: "transform 180ms ease, background 180ms ease",
         ":hover": { transform: "translateY(-1px)" }
       }}
