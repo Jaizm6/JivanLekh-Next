@@ -2,31 +2,19 @@
 This file is part of the Notesnook project (https://notesnook.com/)
 
 Copyright (C) 2023 Streetwriters (Private) Limited
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 import { httpBatchLink } from "@trpc/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Box, Button, Flex, Input, Text } from "@theme-ui/components";
-import { CheckCircleOutline, Loading } from "../../../components/icons";
+import { Loading } from "../../../components/icons";
 import {
   THEME_COMPATIBILITY_VERSION,
   ThemeDark,
   ThemeLight,
   getPreviewColors,
-  validateTheme
+  validateTheme,
+  type ThemeDefinition
 } from "@notesnook/theme";
 import { debounce } from "@notesnook/common";
 import { ThemeWarmSepia } from "../../../common/theme-presets";
@@ -46,11 +34,7 @@ import { VirtualizedGrid } from "../../../components/virtualized-grid";
 import { strings } from "@notesnook/intl";
 
 const ThemesClient = ThemesTRPC.createClient({
-  links: [
-    httpBatchLink({
-      url: THEME_SERVER_URL
-    })
-  ]
+  links: [httpBatchLink({ url: THEME_SERVER_URL })]
 });
 const ThemesQueryClient = new QueryClient();
 
@@ -70,20 +54,34 @@ const COLOR_SCHEMES = [
   { id: "light", title: strings.light() }
 ] as const;
 
+function asThemeMetadata(theme: ThemeDefinition): ThemeMetadata {
+  return {
+    ...theme,
+    totalInstalls: 0,
+    previewColors: getPreviewColors(theme)
+  };
+}
+
 function ThemesList() {
   const [searchQuery, setSearchQuery] = useState<string>();
   const [colorScheme, setColorScheme] = useState<"all" | "dark" | "light">(
     "all"
   );
-
   const [isApplying, setIsApplying] = useState(false);
+  const activeTheme = useThemeStore((store) => store.activeTheme);
   const setCurrentTheme = useThemeStore((store) => store.setTheme);
   const user = useUserStore((store) => store.user);
-  const darkTheme = useThemeStore((store) => store.darkTheme);
-  const lightTheme = useThemeStore((store) => store.lightTheme);
   const isThemeCurrentlyApplied = useThemeStore(
     (store) => store.isThemeCurrentlyApplied
   );
+  const [draftTheme, setDraftTheme] = useState<ThemeMetadata>(() =>
+    asThemeMetadata(activeTheme)
+  );
+
+  useEffect(() => {
+    setDraftTheme(asThemeMetadata(activeTheme));
+  }, [activeTheme]);
+
   const filters = [];
   if (searchQuery) filters.push({ type: "term" as const, value: searchQuery });
   if (colorScheme !== "all")
@@ -97,9 +95,9 @@ function ThemesList() {
     },
     {
       keepPreviousData: true,
-      select: (themes) => ({
-        pageParams: themes.pageParams,
-        pages: themes.pages.map((page) => ({
+      select: (result) => ({
+        pageParams: result.pageParams,
+        pages: result.pages.map((page) => ({
           nextCursor: page.nextCursor,
           themes: page.themes.filter(
             (theme) => !isThemeCurrentlyApplied(theme.id)
@@ -117,76 +115,66 @@ function ThemesList() {
       `${ThemeWarmSepia.name} ${ThemeWarmSepia.description} ${ThemeWarmSepia.tags?.join(" ")}`
         .toLowerCase()
         .includes(normalizedSearch))
-      ? [
-          {
-            ...ThemeWarmSepia,
-            totalInstalls: 0,
-            previewColors: getPreviewColors(ThemeWarmSepia)
-          }
-        ]
+      ? [asThemeMetadata(ThemeWarmSepia)]
       : [];
 
   const builtInThemeItems: ThemeMetadata[] = [ThemeDark, ThemeLight].map(
-    (theme) => ({
-      ...theme,
-      description:
-        theme.colorScheme === "dark"
-          ? strings.defaultDarkThemeDesc()
-          : strings.defaultLightThemeDesc(),
-      totalInstalls: 0,
-      previewColors: getPreviewColors(theme)
-    })
+    (theme) =>
+      asThemeMetadata({
+        ...theme,
+        description:
+          theme.colorScheme === "dark"
+            ? strings.defaultDarkThemeDesc()
+            : strings.defaultLightThemeDesc()
+      })
   );
   const builtInThemeIds = new Set([
     ThemeDark.id,
     ThemeLight.id,
     ThemeWarmSepia.id
   ]);
-  const appliedCustomThemeItems: ThemeMetadata[] = [darkTheme, lightTheme]
-    .filter((theme) => !builtInThemeIds.has(theme.id))
-    .map((theme) => ({
-      ...theme,
-      totalInstalls: 0,
-      previewColors: getPreviewColors(theme)
-    }));
+  const activeThemeMatchesFilter =
+    (colorScheme === "all" || activeTheme.colorScheme === colorScheme) &&
+    (!normalizedSearch ||
+      `${activeTheme.name} ${activeTheme.description} ${activeTheme.tags?.join(" ")}`
+        .toLowerCase()
+        .includes(normalizedSearch));
+  const activeCustomThemeItems: ThemeMetadata[] =
+    !builtInThemeIds.has(activeTheme.id) && activeThemeMatchesFilter
+      ? [asThemeMetadata(activeTheme)]
+      : [];
 
   const items: ThemeMetadata[] = [
     ...builtInThemeItems,
     ...localThemeItems,
-    ...appliedCustomThemeItems,
-    ...(themes.data?.pages.flatMap((a) => a.themes) || [])
+    ...activeCustomThemeItems,
+    ...(themes.data?.pages.flatMap((page) => page.themes) || [])
   ];
 
-  const setTheme = useCallback(
+  const saveTheme = useCallback(
     async (theme: ThemeMetadata) => {
       if (isThemeCurrentlyApplied(theme.id)) return;
-      if (theme.id === ThemeWarmSepia.id) {
-        setCurrentTheme(ThemeWarmSepia);
-        return;
-      }
-      if (theme.id === ThemeLight.id) {
-        setCurrentTheme(ThemeLight);
-        return;
-      }
-      if (theme.id === ThemeDark.id) {
-        setCurrentTheme(ThemeDark);
-        return;
-      }
       setIsApplying(true);
       try {
-        const fullTheme = await ThemesRouter.installTheme.query({
-          id: theme.id,
-          compatibilityVersion: THEME_COMPATIBILITY_VERSION,
-          userId: user?.id
-        });
-        if (!fullTheme) return;
-        setCurrentTheme(fullTheme);
-      } catch (e) {
-        console.error(e);
-        if (e instanceof Error)
+        let fullTheme: ThemeDefinition | undefined;
+        if (theme.id === ThemeWarmSepia.id) fullTheme = ThemeWarmSepia;
+        else if (theme.id === ThemeLight.id) fullTheme = ThemeLight;
+        else if (theme.id === ThemeDark.id) fullTheme = ThemeDark;
+        else {
+          fullTheme = await ThemesRouter.installTheme.query({
+            id: theme.id,
+            compatibilityVersion: THEME_COMPATIBILITY_VERSION,
+            userId: user?.id
+          });
+        }
+
+        if (fullTheme) setCurrentTheme(fullTheme);
+      } catch (error) {
+        console.error(error);
+        if (error instanceof Error)
           showToast(
             "error",
-            `${strings.failedToInstallTheme()} ${strings.error()}: ` + e.message
+            `${strings.failedToInstallTheme()} ${strings.error()}: ${error.message}`
           );
       } finally {
         setIsApplying(false);
@@ -195,12 +183,54 @@ function ThemesList() {
     [isThemeCurrentlyApplied, setCurrentTheme, user?.id]
   );
 
+  const hasUnsavedSelection =
+    draftTheme.id !== activeTheme.id || draftTheme.version !== activeTheme.version;
+
   return (
     <>
+      <Box
+        sx={{
+          position: "sticky",
+          top: 0,
+          zIndex: 3,
+          bg: "background",
+          pt: 2,
+          pb: 2
+        }}
+      >
+        <Flex sx={{ alignItems: "center", justifyContent: "space-between", mb: 2 }}>
+          <Box sx={{ minWidth: 0 }}>
+            <Text sx={{ fontSize: 12, fontWeight: 600, color: "paragraph-secondary" }}>
+              Theme preview
+            </Text>
+            <Text variant="title" sx={{ display: "block" }}>
+              {draftTheme.name}
+            </Text>
+          </Box>
+          <Flex sx={{ gap: 1, flexShrink: 0 }}>
+            <Button
+              variant="secondary"
+              disabled={!hasUnsavedSelection || isApplying}
+              onClick={() => setDraftTheme(asThemeMetadata(activeTheme))}
+            >
+              {strings.cancel()}
+            </Button>
+            <Button
+              variant="primary"
+              disabled={!hasUnsavedSelection || isApplying}
+              onClick={() => void saveTheme(draftTheme)}
+            >
+              {isApplying ? <Loading color="accentForeground" size={18} /> : strings.save()}
+            </Button>
+          </Flex>
+        </Flex>
+        <ThemePreview theme={draftTheme} />
+      </Box>
+
       <Input
         placeholder={strings.searchThemes()}
         sx={{ mt: 2 }}
-        onChange={debounce((e) => setSearchQuery(e.target.value), 500)}
+        onChange={debounce((event) => setSearchQuery(event.target.value), 500)}
       />
       <Flex sx={{ justifyContent: "space-between", alignItems: "center" }}>
         <Flex sx={{ mt: 2, gap: 1 }}>
@@ -208,9 +238,7 @@ function ThemesList() {
             <Button
               key={filter.id}
               variant="secondary"
-              onClick={() => {
-                setColorScheme(filter.id);
-              }}
+              onClick={() => setColorScheme(filter.id)}
               sx={{
                 borderRadius: 100,
                 minWidth: 50,
@@ -225,34 +253,26 @@ function ThemesList() {
             </Button>
           ))}
         </Flex>
-
         <Flex sx={{ mt: 2, gap: 1 }}>
           <Button
             variant="secondary"
+            sx={{ px: 3, flexShrink: 0 }}
             onClick={async () => {
               const [file] = await showFilePicker({
                 acceptedFileTypes: "application/json"
               });
               if (!file) return;
-              const theme = JSON.parse(await readFile(file));
-              const { error } = validateTheme(theme);
-              if (error) return showToast("error", error);
-
-              if (
-                await ThemeDetailsDialog.show({
-                  theme: {
-                    ...theme,
-                    totalInstalls: 0,
-                    previewColors: getPreviewColors(theme)
-                  }
-                })
-              ) {
-                setCurrentTheme(theme);
+              try {
+                const theme = JSON.parse(await readFile(file));
+                const { error } = validateTheme(theme);
+                if (error) return showToast("error", error);
+                setDraftTheme(asThemeMetadata(theme as ThemeDefinition));
+              } catch (error) {
+                showToast(
+                  "error",
+                  error instanceof Error ? error.message : strings.error()
+                );
               }
-            }}
-            sx={{
-              px: 3,
-              flexShrink: 0
             }}
           >
             {strings.loadFromFile()}
@@ -260,11 +280,7 @@ function ThemesList() {
         </Flex>
       </Flex>
 
-      <Box
-        sx={{
-          mt: 2
-        }}
-      >
+      <Box sx={{ mt: 2 }}>
         {themes.isInitialLoading && items.length === 0 ? (
           <Loader title={strings.loadingThemes()} />
         ) : (
@@ -272,7 +288,7 @@ function ThemesList() {
             columns={2}
             items={items}
             getItemKey={(index) => items[index].id}
-            estimatedSize={285}
+            estimatedSize={112}
             mode="dynamic"
             onEndReached={() =>
               themes.hasNextPage ? themes.fetchNextPage() : null
@@ -281,9 +297,10 @@ function ThemesList() {
               <ThemeItem
                 key={theme.id}
                 theme={theme}
-                isApplied={isThemeCurrentlyApplied(theme.id)}
-                isApplying={isApplying}
-                setTheme={setTheme}
+                isSelected={draftTheme.id === theme.id}
+                isSaved={activeTheme.id === theme.id}
+                disabled={isApplying}
+                onSelect={setDraftTheme}
               />
             )}
           />
@@ -298,64 +315,81 @@ function ThemesList() {
 
 type ThemeItemProps = {
   theme: ThemeMetadata;
-  isApplied: boolean;
-  isApplying: boolean;
-  setTheme: (theme: ThemeMetadata) => Promise<void>;
+  isSelected: boolean;
+  isSaved: boolean;
+  disabled: boolean;
+  onSelect: (theme: ThemeMetadata) => void;
 };
-function ThemeItem(props: ThemeItemProps) {
-  const { theme, isApplied, isApplying, setTheme } = props;
+
+function ThemeItem({
+  theme,
+  isSelected,
+  isSaved,
+  disabled,
+  onSelect
+}: ThemeItemProps) {
+  const swatches = [
+    theme.previewColors.navigationMenu.background,
+    theme.previewColors.background,
+    theme.previewColors.accent,
+    theme.previewColors.list.heading,
+    theme.previewColors.statusBar.background
+  ];
 
   return (
-    <Flex
+    <Button
+      type="button"
+      variant="secondary"
+      role="radio"
+      aria-checked={isSelected}
+      disabled={disabled}
+      onClick={() => onSelect(theme)}
       sx={{
+        width: "100%",
+        display: "flex",
         flexDirection: "column",
-        flex: 1,
-        cursor: "pointer",
+        alignItems: "stretch",
+        textAlign: "left",
+        gap: 2,
         p: 2,
-        border: "1px solid transparent",
-        borderRadius: "default",
-        ":hover": {
-          bg: "background-secondary",
-          border: "1px solid var(--border)",
-          ".set-as-button": { visibility: "visible" }
-        }
-      }}
-      role="button"
-      tabIndex={0}
-      aria-pressed={isApplied}
-      onKeyDown={(event) => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          if (!isApplied) void setTheme(theme);
-        }
-      }}
-      onClick={() => {
-        if (!isApplied) void setTheme(theme);
+        borderRadius: "extraLarge",
+        border: isSelected
+          ? "2px solid var(--accent)"
+          : "1px solid var(--border)",
+        bg: isSelected ? "background-selected" : "background-secondary",
+        transition: "transform 180ms ease, background 180ms ease",
+        ":hover": { transform: "translateY(-1px)" }
       }}
     >
-      <ThemePreview theme={theme} />
-      <Text variant="title" sx={{ mt: 1 }}>
-        {theme.name}
-      </Text>
-      <Text variant="body">{theme.authors[0].name}</Text>
-      <Flex sx={{ justifyContent: "space-between", alignItems: "center" }}>
-        <Text variant="subBody">
-          {theme.colorScheme === "dark" ? strings.dark() : strings.light()}
-          &nbsp;&nbsp;
-          {theme.totalInstalls
-            ? `${theme.totalInstalls} ${strings.installs()}`
-            : ""}
-        </Text>
-        {isApplied ? (
-          <CheckCircleOutline color="accent" size={20} />
-        ) : isApplying ? (
-          <Loading color="accent" size={18} />
-        ) : (
-          <Text variant="subBody" sx={{ color: "accent", fontWeight: 600 }}>
-            {strings.setAsDefault()}
-          </Text>
-        )}
+      <Flex sx={{ width: "100%", height: 28, overflow: "hidden", borderRadius: 999 }}>
+        {swatches.map((color, index) => (
+          <Box
+            key={index}
+            sx={{
+              flex: 1,
+              bg: color,
+              borderRight:
+                index < swatches.length - 1 ? "1px solid var(--border)" : "none"
+            }}
+          />
+        ))}
       </Flex>
-    </Flex>
+      <Flex sx={{ alignItems: "center", justifyContent: "space-between", minWidth: 0 }}>
+        <Box sx={{ minWidth: 0 }}>
+          <Text sx={{ fontSize: 13, fontWeight: 600, color: "text", display: "block" }}>
+            {theme.name}
+          </Text>
+          <Text sx={{ fontSize: 10, color: "paragraph-secondary" }}>
+            {theme.colorScheme === "dark" ? strings.dark() : strings.light()}
+            {theme.totalInstalls ? ` · ${theme.totalInstalls} ${strings.installs()}` : ""}
+          </Text>
+        </Box>
+        {isSelected ? (
+          <Text sx={{ fontSize: 10, fontWeight: 600, color: "accent", flexShrink: 0 }}>
+            {isSaved ? "Saved" : "Selected"}
+          </Text>
+        ) : null}
+      </Flex>
+    </Button>
   );
 }
