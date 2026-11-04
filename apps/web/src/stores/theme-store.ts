@@ -25,9 +25,9 @@ import {
   THEME_COMPATIBILITY_VERSION,
   ThemeDark,
   ThemeDefinition,
-  ThemeLight,
-  ThemeWarmSepia
+  ThemeLight
 } from "@notesnook/theme";
+import { ThemeWarmSepia } from "../common/theme-presets";
 import { ThemesRouter } from "../common/themes-router";
 
 type ColorScheme = "dark" | "light";
