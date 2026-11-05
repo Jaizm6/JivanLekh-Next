@@ -235,11 +235,9 @@ function ThemePalette({
       >
         {theme.name}
       </Text>
-      {isSelected ? (
-        <Text sx={{ fontSize: 9, lineHeight: 1, color: "accent" }}>
-          {isSaved ? "Selected" : "Preview"}
-        </Text>
-      ) : null}
+      <Text sx={{ fontSize: 9, lineHeight: "12px", height: 12, color: "accent" }}>
+        {isSelected ? (isSaved ? "Selected" : "Preview") : "\u00a0"}
+      </Text>
     </Button>
   );
 }
