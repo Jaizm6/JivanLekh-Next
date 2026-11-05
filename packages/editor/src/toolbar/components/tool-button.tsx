@@ -89,6 +89,7 @@ const TOOL_ICON_COLORS: Record<string, string> = {
   image: "var(--jl-icon-media)",
   imageSettings: "var(--jl-icon-media)",
   attachment: "var(--jl-icon-media)",
+  audioMemo: "var(--jl-icon-media)",
   attachmentSettings: "var(--jl-icon-media)",
   previewAttachment: "var(--jl-icon-media)",
   download: "var(--jl-icon-media)",
