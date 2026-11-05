@@ -226,7 +226,7 @@ const voiceMemo = (editor: Editor): MenuItem => ({
   key: "voice-memo",
   type: "button",
   title: "Voice memo",
-  icon: Icons.attachment,
+  icon: Icons.audioMemo,
   isChecked: editor.isActive("audio"),
   onClick: () => editor.chain().focus().insertAudio().run()
 });
