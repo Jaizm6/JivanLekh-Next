@@ -610,6 +610,7 @@ function Note(props: NoteProps) {
       }}
       sx={{
         borderLeft: isOpened ? "4px solid" : "none",
+        borderBottom: "1px solid var(--border)",
         pl: isOpened ? "3px" : "7px",
         borderLeftColor: isOpened ? primary : "transparent"
       }}
@@ -648,7 +649,6 @@ function Note(props: NoteProps) {
           {compact ? (
             <>
               {note.conflicted && <Alert size={15} color="var(--icon-error)" />}
-              {locked && <Lock size={11} data-test-id={`locked`} />}
               {note.favorite && <Star color={primary} size={15} />}
               {note.readonly && <Readonly size={15} />}
               {note.expiryDate?.value ? <Destruct size={13} /> : null}
@@ -702,7 +702,6 @@ function Note(props: NoteProps) {
 
               {note.pinned && !props.context && <Pin size={13} />}
 
-              {locked && <Lock size={13} data-test-id={`locked`} />}
 
               {note.readonly && <Readonly size={15} />}
 

@@ -250,7 +250,8 @@ const MemoizedEditorView = React.memo(EditorView, (prev, next) => {
     prev.session.needsHydration === next.session.needsHydration &&
     prev.session.activeBlockId === next.session.activeBlockId &&
     prev.session.activeSearchResultId === next.session.activeSearchResultId &&
-    prev.session.nonce === next.session.nonce;
+    prev.session.nonce === next.session.nonce &&
+    prev.session.editUnlocked === next.session.editUnlocked;
 
   if ("note" in prev.session && "note" in next.session) {
     return (
@@ -412,7 +413,11 @@ function EditorView({
           deferredSave(session.id, session.id, ignoreEdit, data);
         }}
         options={{
-          readonly: session?.type === "readonly" || session?.type === "deleted",
+          readonly:
+            session.type === "readonly" ||
+            session.type === "deleted" ||
+            ((session.type === "default" || session.type === "new") &&
+              !session.editUnlocked),
           focusMode: isFocusMode,
           spellcheck:
             "note" in session ? session.note.spellcheck : session.type === "new"

@@ -116,8 +116,104 @@ export function EditorActionBar() {
     db.monographs.isPublished(activeSession.note.id);
   const isMobile = useMobile();
   const isTablet = useTablet();
+  const previousSessionId = useRef(activeSession?.id);
+  const relockTimers = useRef(
+    new Map<string, ReturnType<typeof setTimeout>>()
+  );
+
+  useEffect(() => {
+    const previousId = previousSessionId.current;
+    const nextId = activeSession?.id;
+
+    if (previousId && previousId !== nextId) {
+      const previous = useEditorStore.getState().getSession(previousId);
+      if (
+        previous &&
+        (previous.type === "default" || previous.type === "new") &&
+        previous.editUnlocked
+      ) {
+        const pending = relockTimers.current.get(previousId);
+        if (pending) clearTimeout(pending);
+        const timer = setTimeout(() => {
+          useEditorStore
+            .getState()
+            .saveSessionContentIfNotSaved(previousId);
+          useEditorStore.getState().updateSession(
+            previousId,
+            ["default", "new"],
+            { editUnlocked: false }
+          );
+          relockTimers.current.delete(previousId);
+        }, 1000);
+        relockTimers.current.set(previousId, timer);
+      }
+    }
+
+    if (nextId) {
+      const pending = relockTimers.current.get(nextId);
+      if (pending) {
+        clearTimeout(pending);
+        relockTimers.current.delete(nextId);
+      }
+    }
+    previousSessionId.current = nextId;
+  }, [activeSession?.id]);
+
+  useEffect(
+    () => () => {
+      const id = previousSessionId.current;
+      if (!id) return;
+      const session = useEditorStore.getState().getSession(id);
+      if (
+        session &&
+        (session.type === "default" || session.type === "new") &&
+        session.editUnlocked
+      ) {
+        setTimeout(() => {
+          useEditorStore
+            .getState()
+            .saveSessionContentIfNotSaved(id);
+          useEditorStore.getState().updateSession(
+            id,
+            ["default", "new"],
+            { editUnlocked: false }
+          );
+        }, 1000);
+      }
+    },
+    []
+  );
+
+  const canToggleEditLock =
+    !!activeSession &&
+    (activeSession.type === "default" || activeSession.type === "new") &&
+    !isLockedSession(activeSession);
 
   const tools: ToolButton[] = [
+    {
+      title: activeSession?.editUnlocked ? "Lock note editing" : "Unlock note editing",
+      icon: activeSession?.editUnlocked ? Unlock : Lock,
+      enabled: canToggleEditLock,
+      hidden: !canToggleEditLock,
+      toggled: !!activeSession?.editUnlocked,
+      onClick: () => {
+        if (!activeSession || !canToggleEditLock) return;
+        const session = useEditorStore
+          .getState()
+          .getSession(activeSession.id, ["default", "new"]);
+        if (!session || isLockedSession(session)) return;
+        if (session.editUnlocked) {
+          useEditorStore
+            .getState()
+            .saveSessionContentIfNotSaved(session.id);
+        }
+        useEditorStore.getState().updateSession(
+          session.id,
+          [session.type],
+          { editUnlocked: !session.editUnlocked }
+        );
+      }
+    },
     {
       title: strings.newTab(),
       icon: NewTab,
