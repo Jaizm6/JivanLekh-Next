@@ -650,7 +650,6 @@ function Note(props: NoteProps) {
             <>
               {note.conflicted && <Alert size={15} color="var(--icon-error)" />}
               {note.favorite && <Star color={primary} size={15} />}
-              {note.readonly && <Readonly size={15} />}
               {note.expiryDate?.value ? <Destruct size={13} /> : null}
 
               <TimeAgo
@@ -703,7 +702,6 @@ function Note(props: NoteProps) {
               {note.pinned && !props.context && <Pin size={13} />}
 
 
-              {note.readonly && <Readonly size={15} />}
 
               {note.favorite && (
                 <Star data-test-id="favorite" color={primary} size={15} />
