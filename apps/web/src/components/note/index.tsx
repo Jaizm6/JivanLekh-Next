@@ -589,11 +589,6 @@ function Note(props: NoteProps) {
       isCompact={compact}
       item={note}
       title={note.title}
-      titleAccessory={
-        compact && checklistProgress ? (
-          <CompactChecklistProgress progress={checklistProgress} />
-        ) : undefined
-      }
       body={note.headline as string}
       onKeyPress={async (e) => {
         if (e.key === "Delete") {
@@ -650,7 +645,9 @@ function Note(props: NoteProps) {
               {note.conflicted && <Alert size={15} color="var(--icon-error)" />}
               {note.favorite && <Star color={primary} size={15} />}
               {note.expiryDate?.value ? <Destruct size={13} /> : null}
-
+              {checklistProgress ? (
+                <CompactChecklistProgress progress={checklistProgress} />
+              ) : null}
             </>
           ) : (
             <>
