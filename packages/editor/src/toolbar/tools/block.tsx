@@ -41,19 +41,27 @@ export function InsertBlock(props: ToolProps) {
   const isMobile = useIsMobile();
 
   const menuItems = useMemo(() => {
-    const items = [
+    const items: MenuItem[] = [
       paragraph(editor),
-      expenseChecklist(editor),
+      ...[1, 2, 3, 4, 5, 6].map((level) => heading(editor, level)),
+      ...[1, 2, 3].map((level) => toggleHeading(editor, level)),
+      { key: "list-separator", type: "separator" },
       checklist(editor),
+      expenseChecklist(editor),
+      bulletList(editor),
+      numberedList(editor),
       outlinelist(editor),
+      { key: "block-separator", type: "separator" },
       horizontalRule(editor),
       codeblock(editor),
       mathblock(editor),
       inlineMath(editor),
+      columns(editor),
       callout(editor),
       blockquote(editor),
       sketch(editor),
       voiceMemo(editor),
+      { key: "media-separator", type: "separator" },
       image(editor, isMobile),
       attachment(editor),
       isMobile ? embedMobile(editor) : embedDesktop(editor),
@@ -105,6 +113,77 @@ export function InsertBlock(props: ToolProps) {
     </>
   );
 }
+
+const heading = (editor: Editor, level: number): MenuItem => ({
+  key: `heading-${level}`,
+  type: "button",
+  title: `Heading ${level}`,
+  icon: [
+    Icons.heading1,
+    Icons.heading2,
+    Icons.heading3,
+    Icons.heading4,
+    Icons.heading5,
+    Icons.heading6
+  ][level - 1],
+  isChecked: editor.isActive("heading", { level }),
+  onClick: () =>
+    editor.chain().focus().setHeading({ level: level as 1 | 2 | 3 | 4 | 5 | 6 }).run()
+});
+
+const toggleHeading = (editor: Editor, level: number): MenuItem => ({
+  key: `toggle-heading-${level}`,
+  type: "button",
+  title: `Toggle Heading ${level}`,
+  icon: [
+    Icons.heading1,
+    Icons.heading2,
+    Icons.heading3
+  ][level - 1],
+  isChecked: editor.isActive("heading", { level, collapsed: true }),
+  onClick: () =>
+    editor
+      .chain()
+      .focus()
+      .setHeading({ level: level as 1 | 2 | 3 })
+      .updateAttributes("heading", { collapsed: true })
+      .run()
+});
+
+const bulletList = (editor: Editor): MenuItem => ({
+  key: "bullet-list",
+  type: "button",
+  title: strings.bulletList(),
+  icon: Icons.bulletList,
+  isChecked: editor.isActive("bulletList"),
+  onClick: () => editor.chain().focus().toggleBulletList().run()
+});
+
+const numberedList = (editor: Editor): MenuItem => ({
+  key: "numbered-list",
+  type: "button",
+  title: strings.numberedList(),
+  icon: Icons.numberedList,
+  isChecked: editor.isActive("orderedList"),
+  onClick: () => editor.chain().focus().toggleOrderedList().run()
+});
+
+const columns = (editor: Editor): MenuItem => ({
+  key: "columns",
+  type: "button",
+  title: "Columns",
+  icon: Icons.columnProperties,
+  menu: {
+    title: "Insert columns",
+    items: ([2, 3, 4, 5] as const).map((count) => ({
+      key: `columns-${count}`,
+      type: "button" as const,
+      title: `${count} columns`,
+      icon: Icons.columnProperties,
+      onClick: () => editor.chain().focus().insertColumns(count).run()
+    }))
+  }
+});
 
 const paragraph = (editor: Editor): MenuItem => ({
   key: "paragraph",
@@ -440,14 +519,30 @@ const uploadImageFromURL = (editor: Editor): MenuItem => ({
 
 
 const BLOCK_MENU_ICON_COLORS: Record<string, string> = {
-  paragraph: "var(--jl-icon-text)",
+  paragraph: "var(--jl-icon-muted)",
+  "heading-1": "#e11d48",
+  "heading-2": "#ea580c",
+  "heading-3": "#16a34a",
+  "heading-4": "#2563eb",
+  "heading-5": "#9333ea",
+  "heading-6": "#4f46e5",
+  "toggle-heading-1": "#e11d48",
+  "toggle-heading-2": "#ea580c",
+  "toggle-heading-3": "#16a34a",
   "expense-checklist": "var(--jl-icon-list)",
   checklist: "var(--jl-icon-list)",
+  "bullet-list": "var(--jl-icon-list)",
+  "numbered-list": "var(--jl-icon-list)",
   outlinelist: "var(--jl-icon-alignment)",
   hr: "var(--jl-icon-muted)",
   codeblock: "var(--jl-icon-code)",
   math: "var(--jl-icon-code)",
   "inline-math": "var(--jl-icon-code)",
+  columns: "var(--jl-icon-alignment)",
+  "columns-2": "var(--jl-icon-alignment)",
+  "columns-3": "var(--jl-icon-alignment)",
+  "columns-4": "var(--jl-icon-alignment)",
+  "columns-5": "var(--jl-icon-alignment)",
   callout: "var(--jl-icon-heading)",
   blockquote: "var(--jl-icon-link)",
   sketch: "var(--jl-icon-media)",
@@ -459,9 +554,8 @@ const BLOCK_MENU_ICON_COLORS: Record<string, string> = {
   "upload-from-disk": "var(--jl-icon-media)",
   camera: "var(--jl-icon-media)",
   "upload-from-url": "var(--jl-icon-link)",
-  "import-csv": "var(--jl-icon-success)"
+  "import-csv": "var(--jl-icon-code)"
 };
-
 function colorizeMenuItems(items: MenuItem[]): MenuItem[] {
   return items.map((item) => {
     if (item.type !== "button") return item;
