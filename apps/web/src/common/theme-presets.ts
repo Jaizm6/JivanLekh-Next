@@ -155,5 +155,99 @@ export const ThemeForestNight = createPaletteTheme(
   }
 );
 
-export const BuiltInLightThemes = [ThemeLight, ThemeWarmSepia, ThemeSoftSage] as const;
-export const BuiltInDarkThemes = [ThemeDark, ThemeMidnightBlue, ThemeForestNight] as const;
+export const ThemeLavenderMist = createPaletteTheme(
+  ThemeLight,
+  "lavender-mist",
+  "Lavender Mist",
+  "A soft lavender palette with a quiet, cool surface.",
+  {
+    accent: "#7453A6",
+    background: "#FAF8FC",
+    secondaryBackground: "#F1EDF7",
+    selectedBackground: "#E9E0F4",
+    paragraph: "#302A38",
+    secondaryParagraph: "#756B82",
+    heading: "#332940",
+    border: "#E4DCEC",
+    icon: "#6F6480",
+    placeholder: "#958BA0",
+    hover: "#EEE8F5"
+  }
+);
+
+export const ThemeCoastalMist = createPaletteTheme(
+  ThemeLight,
+  "coastal-mist",
+  "Coastal Mist",
+  "A fresh, low-glare palette with muted teal accents.",
+  {
+    accent: "#2F737A",
+    background: "#F5FAFA",
+    secondaryBackground: "#EAF3F3",
+    selectedBackground: "#DDEDEE",
+    paragraph: "#263438",
+    secondaryParagraph: "#64777A",
+    heading: "#22363A",
+    border: "#D8E5E6",
+    icon: "#587377",
+    placeholder: "#8A9B9D",
+    hover: "#E8F1F2"
+  }
+);
+
+export const ThemeDuskSlate = createPaletteTheme(
+  ThemeDark,
+  "dusk-slate",
+  "Dusk Slate",
+  "A gentle charcoal palette with muted violet highlights.",
+  {
+    accent: "#A9A7F5",
+    accentForeground: "#1C1B27",
+    background: "#1C1B27",
+    secondaryBackground: "#252433",
+    selectedBackground: "#333148",
+    paragraph: "#E3E1F0",
+    secondaryParagraph: "#B1AEC8",
+    heading: "#F2F0FC",
+    border: "#3B394D",
+    icon: "#B8B5D3",
+    placeholder: "#87849F",
+    hover: "#302E43"
+  }
+);
+
+export const ThemePlumNight = createPaletteTheme(
+  ThemeDark,
+  "plum-night",
+  "Plum Night",
+  "A warm dark palette with restrained plum accents.",
+  {
+    accent: "#D7A2C7",
+    accentForeground: "#241B23",
+    background: "#241B23",
+    secondaryBackground: "#30242F",
+    selectedBackground: "#443347",
+    paragraph: "#EBDDE8",
+    secondaryParagraph: "#C2ADBE",
+    heading: "#F6EAF3",
+    border: "#493A46",
+    icon: "#CBB3C5",
+    placeholder: "#957F90",
+    hover: "#3B2D3A"
+  }
+);
+
+export const BuiltInLightThemes = [
+  ThemeLight,
+  ThemeWarmSepia,
+  ThemeSoftSage,
+  ThemeLavenderMist,
+  ThemeCoastalMist
+] as const;
+export const BuiltInDarkThemes = [
+  ThemeDark,
+  ThemeMidnightBlue,
+  ThemeForestNight,
+  ThemeDuskSlate,
+  ThemePlumNight
+] as const;

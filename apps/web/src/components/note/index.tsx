@@ -267,8 +267,8 @@ function useNoteChecklistProgress(
 
 function getChecklistProgressColor(kind: "expense" | "checklist") {
   return kind === "expense"
-    ? "light-dark(#B45309, #FDBA74)"
-    : "light-dark(#047857, #6EE7B7)";
+    ? "light-dark(#9A3412, #FFD08A)"
+    : "light-dark(#065F46, #7BE6B5)";
 }
 
 function CompactChecklistProgressMetric({
@@ -283,8 +283,8 @@ function CompactChecklistProgressMetric({
   const color = getChecklistProgressColor(kind);
   const backgroundColor =
     kind === "expense"
-      ? "light-dark(rgba(180, 83, 9, 0.10), rgba(251, 146, 60, 0.14))"
-      : "light-dark(rgba(4, 120, 87, 0.10), rgba(52, 211, 153, 0.14))";
+      ? "light-dark(rgba(154, 52, 18, 0.15), rgba(255, 208, 138, 0.20))"
+      : "light-dark(rgba(6, 95, 70, 0.15), rgba(123, 230, 181, 0.20))";
   const percent =
     count.total > 0
       ? Math.min(100, (count.checked / count.total) * 100)
@@ -330,8 +330,8 @@ function CompactChecklistProgressMetric({
           cy="5"
           r="4"
           fill="none"
-          stroke="light-dark(#CBD5E1, rgba(255, 255, 255, 0.24))"
-          strokeWidth="1.2"
+          stroke="light-dark(#9e948a, rgba(255, 255, 255, 0.38))"
+          strokeWidth="1.5"
         />
         <circle
           cx="5"
@@ -339,7 +339,7 @@ function CompactChecklistProgressMetric({
           r="4"
           fill="none"
           stroke={color}
-          strokeWidth="1.2"
+          strokeWidth="1.5"
           strokeDasharray={`${progressLength} ${circumference}`}
           strokeLinecap="round"
           transform="rotate(-90 5 5)"
@@ -468,7 +468,7 @@ function DetailedChecklistProgressMetric({
           cy="6"
           r="5"
           fill="none"
-          stroke="light-dark(#CBD5E1, rgba(255, 255, 255, 0.24))"
+          stroke="light-dark(#9e948a, rgba(255, 255, 255, 0.38))"
           strokeWidth="1.5"
         />
         <circle
