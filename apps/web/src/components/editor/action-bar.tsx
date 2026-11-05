@@ -149,13 +149,6 @@ export function EditorActionBar() {
       }
     }
 
-    if (nextId) {
-      const pending = relockTimers.current.get(nextId);
-      if (pending) {
-        clearTimeout(pending);
-        relockTimers.current.delete(nextId);
-      }
-    }
     previousSessionId.current = nextId;
   }, [activeSession?.id]);
 
@@ -191,7 +184,9 @@ export function EditorActionBar() {
 
   const tools: ToolButton[] = [
     {
-      title: activeSession?.editUnlocked ? "Lock note editing" : "Unlock note editing",
+      title: activeSession?.editUnlocked
+        ? "Lock note editing"
+        : "Unlock note editing",
       icon: activeSession?.editUnlocked ? Unlock : Lock,
       enabled: canToggleEditLock,
       hidden: !canToggleEditLock,
