@@ -83,6 +83,7 @@ import { LIST_NODE_TYPES } from "./utils/node-types.js";
 import CheckList from "./extensions/check-list/index.js";
 import CheckListItem from "./extensions/check-list-item/index.js";
 import { Callout } from "./extensions/callout/index.js";
+import { Column, Columns } from "./extensions/columns/index.js";
 import BlockId from "./extensions/block-id/index.js";
 import { useEditorSearchStore } from "./toolbar/stores/search-store.js";
 import { DiffHighlighter } from "./extensions/diff-highlighter/index.js";
@@ -304,6 +305,8 @@ const useTiptap = (
             }
           ]
         }),
+        Column,
+        Columns,
         Table.configure({
           resizable: true,
           allowTableNodeSelection: true,
