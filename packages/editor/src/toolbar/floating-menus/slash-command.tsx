@@ -205,7 +205,7 @@ export function SlashCommandFloatingMenu({ editor }: FloatingMenuProps) {
         title: "Voice memo",
         description: "Record audio directly in this note",
         aliases: ["audio", "voice", "memo", "recording"],
-        icon: Icons.attachment,
+        icon: Icons.audioMemo,
         color: COMMAND_COLORS.media,
         run: (editor, range) =>
           editor.chain().focus().deleteRange(range).insertAudio().run()
