@@ -122,6 +122,11 @@ type Features = typeof features;
 type Caption<TId extends FeatureId> =
   Features[TId]["availability"][keyof FeatureAvailability]["caption"];
 
+// JivanLekh's built-in product features are free for every user.
+// Keep the tier definitions for compatibility with shared UI, while feature
+// checks use the full built-in feature baseline for all accounts.
+const JIVANLEKH_FEATURE_PLAN = SubscriptionPlan.BELIEVER;
+
 const features = {
   storage: createFeature({
     id: "storage",
@@ -614,7 +619,7 @@ export async function isFeatureAvailable<TId extends FeatureId>(
 export async function getFeatureLimit<TId extends FeatureId>(
   feature: Feature<TId>
 ) {
-  const plan = await getUserPlan();
+  const plan = JIVANLEKH_FEATURE_PLAN;
   return getFeatureLimitFromPlan(feature, plan);
 }
 
@@ -624,7 +629,7 @@ export async function areFeaturesAvailable<TIds extends FeatureId[]>(
 ): Promise<{
   [K in TIds[number]]: FeatureResult<K>;
 }> {
-  const plan = await getUserPlan();
+  const plan = JIVANLEKH_FEATURE_PLAN;
   const results = {} as {
     [K in TIds[number]]: FeatureResult<K>;
   };
@@ -646,12 +651,6 @@ export async function areFeaturesAvailable<TIds extends FeatureId[]>(
   }
 
   return results;
-}
-
-async function getUserPlan() {
-  const user = await db.user.getUser();
-  const plan = user?.subscription?.plan || SubscriptionPlan.FREE;
-  return plan;
 }
 
 async function availableOn(id: FeatureId, value?: number) {
@@ -706,7 +705,7 @@ export type FeatureUsage = {
   used: number;
 };
 export async function getFeaturesUsage(): Promise<FeatureUsage[]> {
-  const plan = await getUserPlan();
+  const plan = JIVANLEKH_FEATURE_PLAN;
   const usage: FeatureUsage[] = [];
   for (const key in features) {
     const feature = getFeature(key as FeatureId);

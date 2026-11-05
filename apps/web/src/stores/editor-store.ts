@@ -93,6 +93,9 @@ export type BaseEditorSession = {
    * Used for force refreshing a session.
    */
   nonce?: number;
+
+  /** Whether this editor session is temporarily unlocked for editing. */
+  editUnlocked?: boolean;
 };
 
 export type LockedEditorSession = BaseEditorSession & {

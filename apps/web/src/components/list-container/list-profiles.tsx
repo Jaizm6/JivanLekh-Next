@@ -91,6 +91,10 @@ const COMPACT_PLACEHOLDER_ITEM_DATA: PlaceholderData = {
   padding: [6, 5, 6, 5],
   lines: [{ height: 16, width: `random` }]
 };
+const COMPACT_NOTE_PLACEHOLDER_ITEM_DATA: PlaceholderData = {
+  padding: [10, 5, 10, 5],
+  lines: [{ height: 16, width: `random` }]
+};
 const FULL_PLACEHOLDER_ITEM_DATA: PlaceholderData = {
   padding: [10, 5, 10, 5],
   gap: 5,
@@ -131,6 +135,9 @@ export function getListItemPlaceholderData(
     case "home":
     case "favorites":
     case "notes":
+    case "archive":
+      if (compact) return COMPACT_NOTE_PLACEHOLDER_ITEM_DATA;
+      return FULL_PLACEHOLDER_ITEM_DATA;
     case "notebooks":
     case "trash":
     case "reminders":

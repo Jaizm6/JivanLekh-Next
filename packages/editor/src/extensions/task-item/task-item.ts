@@ -25,6 +25,9 @@ import { ensureLeadingParagraph } from "../../utils/prosemirror.js";
 
 export type TaskItemAttributes = {
   checked: boolean;
+  readonly: boolean;
+  expenseCurrencySymbol: string;
+  expenseShowCurrency: boolean;
 };
 
 export const TaskItemNode = TaskItem.extend({
@@ -39,6 +42,28 @@ export const TaskItemNode = TaskItem.extend({
         renderHTML: (attributes) => ({
           class: attributes.checked ? "checked" : ""
         })
+      },
+      readonly: {
+        default: false,
+        parseHTML: (element) => element.dataset.readonly === "true",
+        renderHTML: (attributes) =>
+          attributes.readonly ? { "data-readonly": "true" } : {}
+      },
+      expenseCurrencySymbol: {
+        default: "₹",
+        parseHTML: (element) => element.dataset.expenseCurrencySymbol || "₹",
+        renderHTML: (attributes) =>
+          attributes.expenseCurrencySymbol !== "₹"
+            ? { "data-expense-currency-symbol": attributes.expenseCurrencySymbol }
+            : {}
+      },
+      expenseShowCurrency: {
+        default: true,
+        parseHTML: (element) => element.dataset.expenseShowCurrency !== "false",
+        renderHTML: (attributes) =>
+          attributes.expenseShowCurrency === false
+            ? { "data-expense-show-currency": "false" }
+            : {}
       }
     };
   },
@@ -77,8 +102,14 @@ export const TaskItemNode = TaskItem.extend({
         li.dataset.dragImage = "true";
         return li;
       },
-      shouldUpdate: ({ attrs: prev }, { attrs: next }) => {
-        return prev.checked !== next.checked;
+      shouldUpdate: (prev, next) => {
+        return (
+          prev.attrs.checked !== next.attrs.checked ||
+          prev.attrs.readonly !== next.attrs.readonly ||
+          prev.attrs.expenseCurrencySymbol !== next.attrs.expenseCurrencySymbol ||
+          prev.attrs.expenseShowCurrency !== next.attrs.expenseShowCurrency ||
+          prev.textContent !== next.textContent
+        );
       }
     });
   },

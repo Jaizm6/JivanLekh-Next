@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 import "isomorphic-fetch";
-import { mkdir, writeFile } from "fs/promises";
+import { mkdir, readFile, writeFile } from "fs/promises";
 import path from "path";
 import { fileURLToPath } from "url";
 import { existsSync } from "fs";
@@ -38,7 +38,14 @@ async function main() {
 
   for (const themeId of DEFAULT_THEMES) {
     const themePath = path.join(THEMES_DIRECTORY, `${themeId}.json`);
-    if (existsSync(themePath)) continue;
+    if (existsSync(themePath)) {
+      if (themeId !== "default-light") continue;
+
+      // Regenerate caches created by the earlier in-place Warm Sepia override.
+      const cached = JSON.parse(await readFile(themePath, "utf8"));
+      if (cached.name !== "Warm Sepia" || cached.id !== "default-light") continue;
+    }
+
     console.log("Getting", themeId);
 
     const BASE_URL = `https://raw.githubusercontent.com/streetwriters/notesnook-themes/main/themes/${themeId}/v${THEME_COMPATIBILITY_VERSION}`;
@@ -49,7 +56,7 @@ async function main() {
     if (!theme) continue;
 
     await writeFile(
-      path.join(THEMES_DIRECTORY, `${themeId}.json`),
+      themePath,
       JSON.stringify({ ...theme, $schema: undefined, codeBlockCSS })
     );
   }

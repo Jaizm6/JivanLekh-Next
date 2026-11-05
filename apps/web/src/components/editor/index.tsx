@@ -50,7 +50,7 @@ import { FlexScrollContainer } from "../scroll-container";
 import Tiptap, { OnChangeHandler } from "./tiptap";
 import Header from "./header";
 import { Attachment } from "../icons";
-import { AttachmentProgress, insertAttachments } from "./picker";
+import { AttachmentProgress, insertAttachments, saveAudioRecording } from "./picker";
 import { AttachFilesDialog } from "../../dialogs/attach-files-dialog";
 import { useEditorManager } from "./manager";
 import {
@@ -250,7 +250,8 @@ const MemoizedEditorView = React.memo(EditorView, (prev, next) => {
     prev.session.needsHydration === next.session.needsHydration &&
     prev.session.activeBlockId === next.session.activeBlockId &&
     prev.session.activeSearchResultId === next.session.activeSearchResultId &&
-    prev.session.nonce === next.session.nonce;
+    prev.session.nonce === next.session.nonce &&
+    prev.session.editUnlocked === next.session.editUnlocked;
 
   if ("note" in prev.session && "note" in next.session) {
     return (
@@ -412,7 +413,11 @@ function EditorView({
           deferredSave(session.id, session.id, ignoreEdit, data);
         }}
         options={{
-          readonly: session?.type === "readonly" || session?.type === "deleted",
+          readonly:
+            session.type === "readonly" ||
+            session.type === "deleted" ||
+            ((session.type === "default" || session.type === "new") &&
+              !session.editUnlocked),
           focusMode: isFocusMode,
           spellcheck:
             "note" in session ? session.note.spellcheck : session.type === "new"
@@ -653,6 +658,17 @@ export function Editor(props: EditorProps) {
             });
 
           return result;
+        }}
+        onSaveAudioRecording={async (blob, filename) => {
+          if (!useUserStore.getState().isLoggedIn) {
+            ConfirmDialog.show({
+              title: strings.notLoggedIn(),
+              message: strings.loginToUploadAttachments(),
+              positiveButtonText: strings.okay()
+            });
+            return undefined;
+          }
+          return await saveAudioRecording(blob, filename);
         }}
         onAttachFiles={async (files) => {
           await AttachFilesDialog.show({

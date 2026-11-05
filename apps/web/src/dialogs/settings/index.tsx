@@ -35,12 +35,10 @@ import {
   Notification,
   PasswordAndAuth,
   Privacy,
-  Pro,
   Servers,
   ShieldLock,
   Sync,
   Inbox,
-  CircleEmpty
 } from "../../components/icons";
 import NavigationItem from "../../components/navigation-menu/navigation-item";
 import { FlexScrollContainer } from "../../components/scroll-container";
@@ -73,7 +71,6 @@ import {
 } from "./other-settings";
 import { AppearanceSettings } from "./appearance-settings";
 import { debounce, useIsFeatureAvailable, usePromise } from "@notesnook/common";
-import { SubscriptionSettings } from "./subscription-settings";
 import { ScopedThemeProvider } from "../../components/theme-provider";
 import { AppLockSettings } from "./app-lock-settings";
 import { BaseDialogProps, DialogManager } from "../../common/dialog-manager";
@@ -82,7 +79,6 @@ import { strings } from "@notesnook/intl";
 import { mdToHtml } from "../../utils/md";
 import { InboxSettings } from "./inbox-settings";
 import { withFeatureCheck } from "../../common";
-import { NotesnookCircleSettings } from "./notesnook-circle-settings";
 import { hashNavigate } from "../../navigation";
 
 type SettingsDialogProps = BaseDialogProps<false> & {
@@ -96,12 +92,6 @@ const sectionGroups: SectionGroup[] = [
     sections: [
       { key: "profile", title: strings.profile(), icon: Account },
       {
-        key: "subscription",
-        title: strings.subDetails(),
-        icon: Pro,
-        isHidden: () => !useUserStore.getState().isLoggedIn
-      },
-      {
         key: "auth",
         title: strings.authentication(),
         icon: PasswordAndAuth,
@@ -111,12 +101,6 @@ const sectionGroups: SectionGroup[] = [
         key: "sync",
         title: strings.sync(),
         icon: Sync,
-        isHidden: () => !useUserStore.getState().isLoggedIn
-      },
-      {
-        key: "circle",
-        title: strings.notesnookCircle(),
-        icon: CircleEmpty,
         isHidden: () => !useUserStore.getState().isLoggedIn
       },
       {
@@ -153,7 +137,7 @@ const sectionGroups: SectionGroup[] = [
     title: strings.importExport(),
     sections: [
       { key: "backup-export", title: strings.backupExport(), icon: Backup },
-      { key: "importer", title: strings.notesnookImporter(), icon: Import }
+      { key: "importer", title: "Import from Notesnook", icon: Import }
     ]
   },
   {
@@ -193,10 +177,8 @@ const SettingsGroups = [
   ...LegalSettings,
   ...SupportSettings,
   ...AboutSettings,
-  ...SubscriptionSettings,
   ...ServersSettings,
   ...InboxSettings,
-  ...NotesnookCircleSettings
 ];
 
 // Thoughts:
@@ -219,6 +201,9 @@ export const SettingsDialog = DialogManager.register(function SettingsDialog(
       (g) => g.section === (props.activeSection || "profile")
     )
   );
+  const isThemeSettingsView = activeSettings.some((group) =>
+    group.settings.some((setting) => setting.key === "themes")
+  );
 
   return (
     <Dialog
@@ -226,11 +211,16 @@ export const SettingsDialog = DialogManager.register(function SettingsDialog(
       width={"968px"}
       onClose={() => props.onClose(false)}
       noScroll
-      sx={{ bg: "transparent" }}
+      sx={{
+        bg: "transparent",
+        height: "calc(100dvh - 12px)",
+        maxHeight: "calc(100dvh - 12px)"
+      }}
     >
       <Flex
         sx={{
-          height: "80vw",
+          height: "calc(100dvh - 12px)",
+          maxHeight: "calc(100dvh - 12px)",
           overflow: "hidden"
         }}
       >
@@ -250,6 +240,7 @@ export const SettingsDialog = DialogManager.register(function SettingsDialog(
             flex: 1,
             flexDirection: "column",
             padding: 20,
+            paddingTop: isThemeSettingsView ? 0 : 20,
             gap: 20,
             minHeight: "auto",
             overflow: "auto"
@@ -439,6 +430,9 @@ function SettingsGroupComponent(props: { item: SettingsGroup }) {
 
   const allHidden = item.settings.every((s) => s.isHidden?.());
   const hasComponentHeader = typeof item.header !== "string";
+  const hasStickyThemeSelector = item.settings.some(
+    (setting) => setting.key === "themes"
+  );
   if (item.isHidden?.() || (allHidden && !hasComponentHeader)) return null;
 
   return (
@@ -447,7 +441,7 @@ function SettingsGroupComponent(props: { item: SettingsGroup }) {
         flexDirection: "column",
         flexShrink: 0,
         gap: 2,
-        overflow: "hidden"
+        overflow: hasStickyThemeSelector ? "visible" : "hidden"
       }}
     >
       {typeof item.header === "string" ? (

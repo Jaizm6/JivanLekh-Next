@@ -37,7 +37,7 @@ import {
 import { strings } from "@notesnook/intl";
 import { SchemeColors } from "@notesnook/theme";
 import { MenuItem } from "@notesnook/ui";
-import { Flex, Text } from "@theme-ui/components";
+import { Box, Flex, Text } from "@theme-ui/components";
 import React from "react";
 import { db } from "../../common/db";
 import { exportNote, exportNotes } from "../../common/export";
@@ -114,6 +114,454 @@ type NoteProps = NoteResolvedData & {
   compact?: boolean;
 };
 
+type ChecklistCount = { checked: number; total: number };
+type NoteChecklistProgress = {
+  expense?: ChecklistCount;
+  expenseCurrency?: string;
+  checklist?: ChecklistCount;
+};
+type ChecklistProgressSnapshot = {
+  key: string;
+  progress: NoteChecklistProgress | null;
+};
+
+const checklistProgressCache = new Map<
+  string,
+  NoteChecklistProgress | null
+>();
+
+function getExpenseCurrency(lists: Element[]): string {
+  const currencyPattern =
+    /C\$|A\$|\bAED\b|\bINR\b|\bUSD\b|\bEUR\b|\bGBP\b|\bJPY\b|\bCAD\b|\bAUD\b|₹|\$|€|£|¥|\bRs\.?/gi;
+  const detectedCurrencies = new Set<string>();
+
+  lists.forEach((list) => {
+    Array.from(list.querySelectorAll("li.checklist--item")).forEach((item) => {
+      const matches = item.textContent?.match(currencyPattern) || [];
+      matches.forEach((match) => {
+        const token = match.toUpperCase().replace(/\.$/, "");
+        const symbol =
+          token === "INR" || token === "RS" || token === "₹"
+            ? "₹"
+            : token === "USD" || token === "$"
+            ? "$"
+            : token === "EUR" || token === "€"
+            ? "€"
+            : token === "GBP" || token === "£"
+            ? "£"
+            : token === "JPY" || token === "¥"
+            ? "¥"
+            : token === "CAD" || token === "C$"
+            ? "C$"
+            : token === "AUD" || token === "A$"
+            ? "A$"
+            : token === "AED"
+            ? "AED"
+            : "";
+        if (symbol) detectedCurrencies.add(symbol);
+      });
+    });
+  });
+
+  return detectedCurrencies.size === 1
+    ? Array.from(detectedCurrencies)[0]
+    : "¤";
+}
+
+function getNoteChecklistProgress(html: string): NoteChecklistProgress | null {
+  const parsed = new DOMParser().parseFromString(html, "text/html");
+
+  const topLevelLists = (selector: string) =>
+    Array.from(parsed.querySelectorAll(selector)).filter(
+      (list) => !list.parentElement?.closest(selector)
+    );
+
+  const countItems = (
+    lists: Element[],
+    itemSelector: string
+  ): ChecklistCount => {
+    const items = lists.flatMap((list) =>
+      Array.from(list.querySelectorAll(itemSelector))
+    );
+    return {
+      checked: items.filter((item) => item.classList.contains("checked"))
+        .length,
+      total: items.length
+    };
+  };
+
+  const expenseLists = topLevelLists("ul.checklist");
+  const checklistLists = topLevelLists("ul.simple-checklist");
+
+  if (!expenseLists.length && !checklistLists.length) return null;
+
+  return {
+    expense: expenseLists.length
+      ? countItems(expenseLists, "li.checklist--item")
+      : undefined,
+    expenseCurrency: expenseLists.length
+      ? getExpenseCurrency(expenseLists)
+      : undefined,
+    checklist: checklistLists.length
+      ? countItems(checklistLists, "li.simple-checklist--item")
+      : undefined
+  };
+}
+
+function useNoteChecklistProgress(
+  note: NoteType,
+  enabled?: boolean,
+  locked?: boolean
+) {
+  const contentId = note.contentId;
+  const key = `${contentId || note.id}:${note.dateModified}`;
+  const [snapshot, setSnapshot] = React.useState<ChecklistProgressSnapshot>({
+    key: "",
+    progress: null
+  });
+
+  React.useEffect(() => {
+    if (!enabled || locked || !contentId) {
+      setSnapshot({ key, progress: null });
+      return;
+    }
+
+    if (checklistProgressCache.has(key)) {
+      setSnapshot({
+        key,
+        progress: checklistProgressCache.get(key) ?? null
+      });
+      return;
+    }
+
+    let cancelled = false;
+    db.content
+      .get(contentId)
+      .then((content) => {
+        if (cancelled) return;
+
+        const progress =
+          content && !content.locked && typeof content.data === "string"
+            ? getNoteChecklistProgress(content.data)
+            : null;
+
+        checklistProgressCache.set(key, progress);
+        // Keep the cache bounded as notes are edited over time.
+        if (checklistProgressCache.size > 250) {
+          const oldestKey = checklistProgressCache.keys().next().value;
+          if (oldestKey) checklistProgressCache.delete(oldestKey);
+        }
+
+        setSnapshot({ key, progress });
+      })
+      .catch(() => {
+        if (!cancelled) setSnapshot({ key, progress: null });
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [enabled, key, locked, contentId]);
+
+  return snapshot.key === key ? snapshot.progress : null;
+}
+
+function getChecklistProgressColor(kind: "expense" | "checklist") {
+  return kind === "expense"
+    ? "light-dark(#B45309, #FDBA74)"
+    : "light-dark(#047857, #6EE7B7)";
+}
+
+function CompactChecklistProgressMetric({
+  kind,
+  count,
+  currency
+}: {
+  kind: "expense" | "checklist";
+  count: ChecklistCount;
+  currency?: string;
+}) {
+  const color = getChecklistProgressColor(kind);
+  const backgroundColor =
+    kind === "expense"
+      ? "light-dark(rgba(180, 83, 9, 0.10), rgba(251, 146, 60, 0.14))"
+      : "light-dark(rgba(4, 120, 87, 0.10), rgba(52, 211, 153, 0.14))";
+  const percent =
+    count.total > 0
+      ? Math.min(100, (count.checked / count.total) * 100)
+      : 0;
+  const circumference = 2 * Math.PI * 4;
+  const progressLength = (percent / 100) * circumference;
+  const symbol = kind === "expense" ? currency || "¤" : "✓";
+  const label = `${kind === "expense" ? "Expense checklist" : "Checklist"}: ${count.checked} of ${count.total} completed`;
+
+  return (
+    <Flex
+      role="img"
+      aria-label={label}
+      title={label}
+      sx={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: "1px",
+        height: "13px",
+        px: "2px",
+        borderRadius: "999px",
+        backgroundColor,
+        boxSizing: "border-box",
+        flex: "0 0 auto",
+        flexShrink: 0,
+        whiteSpace: "nowrap",
+        lineHeight: 1
+      }}
+    >
+      <Box
+        as="svg"
+        aria-hidden="true"
+        viewBox="0 0 10 10"
+        sx={{
+          display: "block",
+          width: "10px",
+          height: "10px",
+          flex: "0 0 10px"
+        }}
+      >
+        <circle
+          cx="5"
+          cy="5"
+          r="4"
+          fill="none"
+          stroke="light-dark(#CBD5E1, rgba(255, 255, 255, 0.24))"
+          strokeWidth="1.2"
+        />
+        <circle
+          cx="5"
+          cy="5"
+          r="4"
+          fill="none"
+          stroke={color}
+          strokeWidth="1.2"
+          strokeDasharray={`${progressLength} ${circumference}`}
+          strokeLinecap="round"
+          transform="rotate(-90 5 5)"
+        />
+      </Box>
+      <Text
+        as="span"
+        sx={{
+          display: "inline-flex",
+          alignItems: "center",
+          color,
+          fontSize: "7px",
+          lineHeight: 1,
+          flex: "0 0 auto"
+        }}
+      >
+        {symbol}
+      </Text>
+      <Text
+        as="span"
+        sx={{
+          display: "inline-flex",
+          alignItems: "center",
+          color,
+          fontSize: "8px",
+          lineHeight: 1,
+          fontVariantNumeric: "tabular-nums",
+          flex: "0 0 auto"
+        }}
+      >
+        {count.checked}/{count.total}
+      </Text>
+    </Flex>
+  );
+}
+
+function CompactChecklistProgress({
+  progress
+}: {
+  progress: NoteChecklistProgress | null;
+}) {
+  if (!progress || (!progress.expense && !progress.checklist)) return null;
+
+  const hasBoth = Boolean(progress.expense && progress.checklist);
+
+  return (
+    <Flex
+      role="group"
+      aria-label="Note checklist progress"
+      data-test-id="note-checklist-progress"
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: hasBoth ? "1px" : 0,
+        height: hasBoth ? "27px" : "13px",
+        flex: "0 0 auto",
+        flexShrink: 0
+      }}
+    >
+      {progress.expense ? (
+        <CompactChecklistProgressMetric
+          kind="expense"
+          count={progress.expense}
+          currency={progress.expenseCurrency}
+        />
+      ) : null}
+      {progress.checklist ? (
+        <CompactChecklistProgressMetric
+          kind="checklist"
+          count={progress.checklist}
+        />
+      ) : null}
+    </Flex>
+  );
+}
+
+function DetailedChecklistProgressMetric({
+  kind,
+  count,
+  currency
+}: {
+  kind: "expense" | "checklist";
+  count: ChecklistCount;
+  currency?: string;
+}) {
+  const color = getChecklistProgressColor(kind);
+  const percent =
+    count.total > 0
+      ? Math.min(100, (count.checked / count.total) * 100)
+      : 0;
+  const circumference = 2 * Math.PI * 5;
+  const progressLength = (percent / 100) * circumference;
+  const symbol = kind === "expense" ? currency || "¤" : "✓";
+  const label = `${kind === "expense" ? "Expense checklist" : "Checklist"}: ${count.checked} of ${count.total} completed`;
+
+  return (
+    <Flex
+      alignItems="center"
+      aria-label={label}
+      title={label}
+      sx={{
+        display: "inline-flex",
+        gap: "3px",
+        height: "18px",
+        flexShrink: 0,
+        whiteSpace: "nowrap",
+        lineHeight: 1
+      }}
+    >
+      <Box
+        as="svg"
+        role="img"
+        aria-label={`${Math.round(percent)}% complete`}
+        viewBox="0 0 12 12"
+        sx={{
+          display: "block",
+          width: "12px",
+          height: "12px",
+          flex: "0 0 12px"
+        }}
+      >
+        <circle
+          cx="6"
+          cy="6"
+          r="5"
+          fill="none"
+          stroke="light-dark(#CBD5E1, rgba(255, 255, 255, 0.24))"
+          strokeWidth="1.5"
+        />
+        <circle
+          cx="6"
+          cy="6"
+          r="5"
+          fill="none"
+          stroke={color}
+          strokeWidth="1.5"
+          strokeDasharray={`${progressLength} ${circumference}`}
+          strokeLinecap="round"
+          transform="rotate(-90 6 6)"
+        />
+      </Box>
+      <Box
+        as="span"
+        sx={{
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          alignSelf: "center",
+          height: "100%",
+          color,
+          fontSize: "10px",
+          fontWeight: "medium",
+          lineHeight: 1,
+          flex: "0 0 auto",
+          verticalAlign: "middle"
+        }}
+      >
+        {symbol}
+      </Box>
+      <Box
+        as="span"
+        sx={{
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          alignSelf: "center",
+          height: "100%",
+          color,
+          fontSize: "10px",
+          fontWeight: "medium",
+          lineHeight: 1,
+          fontVariantNumeric: "tabular-nums",
+          flex: "0 0 auto",
+          verticalAlign: "middle"
+        }}
+      >
+        {count.checked}/{count.total}
+      </Box>
+    </Flex>
+  );
+}
+
+function DetailedChecklistProgress({
+  progress
+}: {
+  progress: NoteChecklistProgress | null;
+}) {
+  if (!progress || (!progress.expense && !progress.checklist)) return null;
+
+  return (
+    <Flex
+      role="group"
+      aria-label="Note checklist progress"
+      data-test-id="note-checklist-progress"
+      sx={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: "8px",
+        flexWrap: "wrap",
+        lineHeight: 1
+      }}
+    >
+      {progress.expense ? (
+        <DetailedChecklistProgressMetric
+          kind="expense"
+          count={progress.expense}
+          currency={progress.expenseCurrency}
+        />
+      ) : null}
+      {progress.checklist ? (
+        <DetailedChecklistProgressMetric
+          kind="checklist"
+          count={progress.checklist}
+        />
+      ) : null}
+    </Flex>
+  );
+}
+
 function Note(props: NoteProps) {
   const {
     tags,
@@ -132,14 +580,21 @@ function Note(props: NoteProps) {
   const isOpened = useEditorStore((store) => store.isNoteOpen(item.id));
   const primary: SchemeColors = color ? color.colorCode : "accent-selected";
   const dateFormat = useSettingStore((store) => store.dateFormat);
+  const checklistProgress = useNoteChecklistProgress(note, true, locked);
 
   return (
     <ListItem
       draggable={true}
       isFocused={isOpened}
+      isCompactNoteRow={compact}
       isCompact={compact}
       item={note}
       title={note.title}
+      titleAccessory={
+        compact && checklistProgress ? (
+          <CompactChecklistProgress progress={checklistProgress} />
+        ) : undefined
+      }
       body={note.headline as string}
       onKeyPress={async (e) => {
         if (e.key === "Delete") {
@@ -155,6 +610,7 @@ function Note(props: NoteProps) {
       }}
       sx={{
         borderLeft: isOpened ? "4px solid" : "none",
+        borderBottom: "1px solid var(--border)",
         pl: isOpened ? "3px" : "7px",
         borderLeftColor: isOpened ? primary : "transparent"
       }}
@@ -176,22 +632,43 @@ function Note(props: NoteProps) {
           sx={{
             fontSize: "subBody",
             color: "paragraph-secondary",
+            display: compact ? "flex" : undefined,
             alignItems: "center",
+            justifyContent: "center",
             gap: 1,
-            flexWrap: "wrap",
-            mt: "small",
+            flexWrap: compact ? "nowrap" : "wrap",
+            whiteSpace: compact ? "nowrap" : undefined,
+            mt: compact ? 0 : "small",
+            ml: 0,
+            height: compact ? "100%" : undefined,
+            minHeight: compact ? 0 : undefined,
+            lineHeight: compact ? 1 : undefined,
             flexShrink: 0
           }}
         >
           {compact ? (
             <>
               {note.conflicted && <Alert size={15} color="var(--icon-error)" />}
-              {locked && <Lock size={11} data-test-id={`locked`} />}
               {note.favorite && <Star color={primary} size={15} />}
-              {note.readonly && <Readonly size={15} />}
               {note.expiryDate?.value ? <Destruct size={13} /> : null}
 
-              <TimeAgo live={true} datetime={date} locale="short" />
+              <TimeAgo
+                live={true}
+                datetime={date}
+                locale="short"
+                sx={
+                  compact
+                    ? {
+                        display: "flex",
+                        alignItems: "center",
+                        height: "100%",
+                        fontSize: "11px",
+                        lineHeight: 1,
+                        whiteSpace: "nowrap"
+                      }
+                    : undefined
+                }
+              />
             </>
           ) : (
             <>
@@ -224,9 +701,7 @@ function Note(props: NoteProps) {
 
               {note.pinned && !props.context && <Pin size={13} />}
 
-              {locked && <Lock size={13} data-test-id={`locked`} />}
 
-              {note.readonly && <Readonly size={15} />}
 
               {note.favorite && (
                 <Star data-test-id="favorite" color={primary} size={15} />
@@ -290,6 +765,8 @@ function Note(props: NoteProps) {
                   })}
                 />
               )}
+
+              <DetailedChecklistProgress progress={checklistProgress} />
             </>
           )}
         </Flex>
@@ -305,6 +782,7 @@ export default React.memo(Note, function (prevProps, nextProps) {
     prevProps.compact === nextProps.compact &&
     prevProps.date === nextProps.date &&
     prevItem.dateModified === nextItem.dateModified &&
+    prevItem.contentId === nextItem.contentId &&
     prevProps.notebooks?.dateEdited === nextProps.notebooks?.dateEdited &&
     prevProps.tags?.dateEdited === nextProps.tags?.dateEdited &&
     prevProps.reminder?.dateModified === nextProps.reminder?.dateModified &&

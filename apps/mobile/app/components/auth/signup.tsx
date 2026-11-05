@@ -19,7 +19,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import { strings } from "@notesnook/intl";
 import { useThemeColors } from "@notesnook/theme";
-import { RouteProp, useRoute } from "@react-navigation/native";
 import React, { useRef, useState } from "react";
 import {
   TextInput,
@@ -43,8 +42,6 @@ import Heading from "../ui/typography/heading";
 import Paragraph from "../ui/typography/paragraph";
 import { AuthHeader } from "./header";
 import { SignupContext } from "./signup-context";
-import { RouteParams } from "../../stores/use-navigation-store";
-import SettingsService from "../../services/settings";
 import AppIcon from "../ui/AppIcon";
 
 const SignupSteps = {
@@ -78,7 +75,6 @@ export const Signup = ({
   const setLastSynced = useUserStore((state) => state.setLastSynced);
   const { width, height } = useWindowDimensions();
   const isTablet = width > 600;
-  const route = useRoute<RouteProp<RouteParams, "Auth">>();
 
   const signup = async () => {
     setErrorMessage(undefined);
@@ -96,13 +92,7 @@ export const Signup = ({
       setLastSynced(await db.lastSynced());
       clearMessage();
       setEmailVerifyMessage();
-      if (!SettingsService.getProperty("serverUrls")) {
-        Navigation.navigate("PayWall", {
-          canGoBack: false,
-          state: route.params.state,
-          context: "signup"
-        });
-      }
+      Navigation.navigate("FluidPanelsView", {});
       return true;
     } catch (e) {
       setCurrentStep(SignupSteps.signup);

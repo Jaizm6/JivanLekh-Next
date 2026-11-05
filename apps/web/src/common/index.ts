@@ -517,9 +517,11 @@ export async function checkFeature<TId extends FeatureId>(
       ? idOrFeature
       : await isFeatureAvailable(idOrFeature, value);
   if (!result.isAllowed) {
-    type === "dialog"
-      ? await UpgradeDialog.show({ feature: result })
-      : showFeatureNotAllowedToast(result);
+    if (type === "dialog" && result.availableOn) {
+      await UpgradeDialog.show({ feature: result });
+    } else {
+      showFeatureNotAllowedToast(result);
+    }
     return false;
   }
   return true;

@@ -350,7 +350,8 @@ function NavigationMenu({
                 display: "block"
               }}
             >
-              Notesnook
+              <span style={{ color: "var(--heading)" }}>Jivan</span>
+              <span style={{ color: "var(--jl-icon-heading)" }}>Lekh</span>
             </Text>
           </Flex>
           <Flex sx={{ gap: "small", alignItems: "center" }}>

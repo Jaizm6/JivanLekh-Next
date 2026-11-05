@@ -68,6 +68,8 @@ import { TaskListNode } from "./extensions/task-list/index.js";
 import TextDirection from "./extensions/text-direction/index.js";
 import { WebClipNode, WebClipOptions } from "./extensions/web-clip/index.js";
 import { AudioNode, AudioOptions } from "./extensions/audio/index.js";
+import { SketchNode } from "./extensions/sketch/index.js";
+import type { AudioAttachment } from "./extensions/attachment/types.js";
 import { useEditor } from "./hooks/use-editor.js";
 import { usePermissionHandler } from "./hooks/use-permission-handler.js";
 import Toolbar from "./toolbar/index.js";
@@ -81,6 +83,7 @@ import { LIST_NODE_TYPES } from "./utils/node-types.js";
 import CheckList from "./extensions/check-list/index.js";
 import CheckListItem from "./extensions/check-list-item/index.js";
 import { Callout } from "./extensions/callout/index.js";
+import { Column, Columns } from "./extensions/columns/index.js";
 import BlockId from "./extensions/block-id/index.js";
 import { useEditorSearchStore } from "./toolbar/stores/search-store.js";
 import { DiffHighlighter } from "./extensions/diff-highlighter/index.js";
@@ -110,6 +113,10 @@ interface TiptapStorage {
         attachment: Pick<Attachment, "hash" | "type">
       ) => Promise<string | undefined>)
     | undefined;
+  saveAudioRecording?: (
+    blob: Blob,
+    filename: string
+  ) => Promise<AudioAttachment | undefined>;
 }
 
 declare module "@tiptap/core" {
@@ -147,6 +154,7 @@ const useTiptap = (
 ) => {
   const {
     getAttachmentData,
+    saveAudioRecording,
     downloadAttachment,
     openAttachmentPicker,
     previewAttachment,
@@ -297,6 +305,8 @@ const useTiptap = (
             }
           ]
         }),
+        Column,
+        Columns,
         Table.configure({
           resizable: true,
           allowTableNodeSelection: true,
@@ -345,6 +355,7 @@ const useTiptap = (
         KeyMap,
         WebClipNode,
         AudioNode,
+        SketchNode,
         CheckList,
         CheckListItem.configure({
           nested: true
@@ -405,6 +416,7 @@ const useTiptap = (
         editor.storage.copyToClipboard = copyToClipboard;
         editor.storage.createInternalLink = createInternalLink;
         editor.storage.getAttachmentData = getAttachmentData;
+        editor.storage.saveAudioRecording = saveAudioRecording;
         editor.storage.downloadCsvTable = downloadCsvTable;
         editor.storage.getLinkData = getLinkData;
 
@@ -419,6 +431,7 @@ const useTiptap = (
       downloadAttachment,
       openAttachmentPicker,
       getAttachmentData,
+      saveAudioRecording,
       onBeforeCreate,
       openLink,
       dateFormat,

@@ -92,6 +92,10 @@ type TipTapProps = {
         attachment: Pick<Attachment, "hash" | "type">
       ) => Promise<string | undefined>)
     | undefined;
+  onSaveAudioRecording?: (
+    blob: Blob,
+    filename: string
+  ) => Promise<Extract<Attachment, { type: "audio" }> | undefined>;
   onAttachFiles?: (files: File[]) => void;
   onInsertInternalLink?: (
     attributes?: LinkAttributes
@@ -173,6 +177,7 @@ function TipTap(props: TipTapProps) {
     onDownloadAttachment,
     onPreviewAttachment,
     onGetAttachmentData,
+    onSaveAudioRecording,
     onAttachFiles,
     onInsertInternalLink,
     onContentChange,
@@ -430,6 +435,7 @@ function TipTap(props: TipTapProps) {
       previewAttachment: onPreviewAttachment,
       createInternalLink: onInsertInternalLink,
       getAttachmentData: onGetAttachmentData,
+      saveAudioRecording: onSaveAudioRecording,
       openLink: async (url, openInNewTab) => {
         const link = parseInternalLink(url);
         if (link) handleInternalLink(url, openInNewTab);

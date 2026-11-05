@@ -26,7 +26,6 @@ import {
   GlobalErrorHandler
 } from "./components/error-boundary";
 import { desktop } from "./common/desktop-bridge";
-import { useKeyStore } from "./interfaces/key-store";
 import { usePromise } from "@notesnook/common";
 import { AuthProps } from "./views/auth";
 import { loadDatabase } from "./hooks/use-database";
@@ -55,7 +54,6 @@ export async function startApp(children?: React.ReactNode) {
   try {
     const { Component, props, path, persistence } = await init();
 
-    await useKeyStore.getState().init({ persistence });
 
     root.render(
       <>
@@ -146,6 +144,10 @@ function RouteWrapper(props: {
         >
           <use href="#themed-logo" />
         </svg>
+        <Text variant="heading" sx={{ fontSize: 22, fontWeight: 700, mb: 2 }}>
+          <span style={{ color: "var(--heading)" }}>Jivan</span>
+          <span style={{ color: "var(--jl-icon-heading)" }}>Lekh</span>
+        </Text>
         <Text variant="body" sx={{ fontFamily: "monospace" }}>
           {isMigrating
             ? strings.migratingDatabaseNotice()

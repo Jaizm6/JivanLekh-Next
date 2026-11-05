@@ -20,7 +20,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import { ToolProps } from "../types.js";
 import { Editor } from "../../types.js";
 import { Dropdown } from "../components/dropdown.js";
-import { MenuItem } from "@notesnook/ui";
+import { Icon, MenuItem } from "@notesnook/ui";
+import { Flex, Text } from "@theme-ui/components";
+import { HeadingColors, Icons } from "../icons.js";
 import {
   ToolbarLocation,
   useToolbarLocation
@@ -31,6 +33,14 @@ import { strings } from "@notesnook/intl";
 import { keybindings } from "@notesnook/common";
 
 const defaultLevels = [1, 2, 3, 4, 5, 6] as const;
+const headingIcons = [
+  Icons.heading1,
+  Icons.heading2,
+  Icons.heading3,
+  Icons.heading4,
+  Icons.heading5,
+  Icons.heading6
+] as const;
 
 export function Headings(props: ToolProps) {
   const { editor } = props;
@@ -45,14 +55,27 @@ export function Headings(props: ToolProps) {
     [currentHeadingLevel, toolbarLocation]
   );
 
+  const selectedTitle = currentHeadingLevel
+    ? strings.heading(currentHeadingLevel)
+    : strings.paragraph();
+  const selectedIcon = currentHeadingLevel
+    ? headingIcons[currentHeadingLevel - 1]
+    : Icons.paragraph;
+  const selectedColor = currentHeadingLevel
+    ? HeadingColors[currentHeadingLevel]
+    : "paragraph-secondary";
+
   return (
     <Dropdown
       id="headings"
       group="headings"
       selectedItem={
-        currentHeadingLevel
-          ? strings.heading(currentHeadingLevel)
-          : strings.paragraph()
+        <Flex sx={{ alignItems: "center", mr: 1 }}>
+          <Icon path={selectedIcon} color={selectedColor} size="small" sx={{ mr: 1 }} />
+          <Text variant="subBody" sx={{ color: "paragraph" }}>
+            {selectedTitle}
+          </Text>
+        </Flex>
       }
       items={items}
       menuWidth={130}
@@ -70,6 +93,8 @@ function toMenuItems(
     type: "button",
     key: `heading-${level}`,
     title: toolbarLocation === "bottom" ? `H${level}` : strings.heading(level),
+    icon: headingIcons[level - 1],
+    styles: { icon: { color: HeadingColors[level] } },
     isChecked: level === currentHeadingLevel,
     modifier: keybindings[`insertHeading${level}`].keys,
     onClick: () =>
@@ -84,6 +109,8 @@ function toMenuItems(
     key: "paragraph",
     type: "button",
     title: strings.paragraph(),
+    icon: Icons.paragraph,
+    styles: { icon: { color: "paragraph-secondary" } },
     isChecked: !currentHeadingLevel,
     modifier: keybindings.insertParagraph.keys,
     onClick: () => editor.chain().focus().setParagraph().run()
