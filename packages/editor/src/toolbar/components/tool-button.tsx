@@ -101,7 +101,6 @@ const TOOL_ICON_COLORS: Record<string, string> = {
   camera: "var(--jl-icon-media)",
   delete: "var(--jl-icon-danger)",
   close: "var(--jl-icon-danger)",
-  formatClear: "var(--jl-icon-muted)",
   outdent: "var(--jl-icon-list)",
   indent: "var(--jl-icon-list)",
   csv: "var(--jl-icon-code)",
