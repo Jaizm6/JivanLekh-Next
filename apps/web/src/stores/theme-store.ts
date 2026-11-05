@@ -27,7 +27,7 @@ import {
   ThemeDefinition,
   ThemeLight
 } from "@notesnook/theme";
-import { ThemeWarmSepia } from "../common/theme-presets";
+import { BuiltInDarkThemes, BuiltInLightThemes } from "../common/theme-presets";
 import { ThemesRouter } from "../common/themes-router";
 
 type ColorScheme = "dark" | "light";
@@ -147,9 +147,8 @@ function getDefaultTheme(colorScheme: ColorScheme) {
 
 async function updateTheme(theme: ThemeDefinition) {
   if (
-    theme.id === ThemeLight.id ||
-    theme.id === ThemeDark.id ||
-    theme.id === ThemeWarmSepia.id
+    BuiltInLightThemes.some((preset) => preset.id === theme.id) ||
+    BuiltInDarkThemes.some((preset) => preset.id === theme.id)
   ) {
     return theme;
   }
