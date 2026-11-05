@@ -112,26 +112,6 @@ export const ThemeSoftSage = createPaletteTheme(
   }
 );
 
-export const ThemeCloudBlue = createPaletteTheme(
-  ThemeLight,
-  "cloud-blue",
-  "Cloud Blue",
-  "A clear light palette with soft blue accents.",
-  {
-    accent: "#4677a8",
-    background: "#f7f9fc",
-    secondaryBackground: "#edf2f8",
-    selectedBackground: "#e1ebf6",
-    paragraph: "#263342",
-    secondaryParagraph: "#68788a",
-    heading: "#26384b",
-    border: "#dce5ef",
-    icon: "#5b7189",
-    placeholder: "#8d9bab",
-    hover: "#eaf0f7"
-  }
-);
-
 export const ThemeMidnightBlue = createPaletteTheme(
   ThemeDark,
   "midnight-blue",
@@ -174,5 +154,5 @@ export const ThemeForestNight = createPaletteTheme(
   }
 );
 
-export const BuiltInLightThemes = [ThemeLight, ThemeWarmSepia, ThemeSoftSage, ThemeCloudBlue] as const;
+export const BuiltInLightThemes = [ThemeLight, ThemeWarmSepia, ThemeSoftSage] as const;
 export const BuiltInDarkThemes = [ThemeDark, ThemeMidnightBlue, ThemeForestNight] as const;
