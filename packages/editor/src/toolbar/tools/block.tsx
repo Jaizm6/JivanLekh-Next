@@ -42,14 +42,18 @@ export function InsertBlock(props: ToolProps) {
 
   const menuItems = useMemo(() => {
     const items = [
-      tasklist(editor),
+      paragraph(editor),
+      expenseChecklist(editor),
       checklist(editor),
       outlinelist(editor),
       horizontalRule(editor),
       codeblock(editor),
       mathblock(editor),
+      inlineMath(editor),
       callout(editor),
       blockquote(editor),
+      sketch(editor),
+      voiceMemo(editor),
       image(editor, isMobile),
       attachment(editor),
       isMobile ? embedMobile(editor) : embedDesktop(editor),
@@ -101,6 +105,52 @@ export function InsertBlock(props: ToolProps) {
     </>
   );
 }
+
+const paragraph = (editor: Editor): MenuItem => ({
+  key: "paragraph",
+  type: "button",
+  title: "Text",
+  icon: Icons.paragraph,
+  isChecked: editor.isActive("paragraph"),
+  onClick: () => editor.chain().focus().setParagraph().run()
+});
+
+const expenseChecklist = (editor: Editor): MenuItem => ({
+  key: "expense-checklist",
+  type: "button",
+  title: "Expense Checklist",
+  icon: Icons.checkbox,
+  isChecked: editor.isActive("taskList"),
+  onClick: () => editor.chain().focus().toggleTaskList().run(),
+  modifier: keybindings.toggleTaskList.keys
+});
+
+const inlineMath = (editor: Editor): MenuItem => ({
+  key: "inline-math",
+  type: "button",
+  title: strings.mathInline(),
+  icon: Icons.math,
+  isChecked: editor.isActive("mathInline"),
+  onClick: () => editor.chain().focus().insertMathInline().run()
+});
+
+const sketch = (editor: Editor): MenuItem => ({
+  key: "sketch",
+  type: "button",
+  title: "Sketch",
+  icon: Icons.sketch,
+  isChecked: editor.isActive("sketch"),
+  onClick: () => editor.chain().focus().insertSketch().run()
+});
+
+const voiceMemo = (editor: Editor): MenuItem => ({
+  key: "voice-memo",
+  type: "button",
+  title: "Voice memo",
+  icon: Icons.attachment,
+  isChecked: editor.isActive("audioMemo"),
+  onClick: () => editor.chain().focus().insertAudio().run()
+});
 
 const horizontalRule = (editor: Editor): MenuItem => ({
   key: "hr",
@@ -331,16 +381,6 @@ const checklist = (editor: Editor): MenuItem => ({
   onClick: () => editor.chain().focus().toggleCheckList().run()
 });
 
-const tasklist = (editor: Editor): MenuItem => ({
-  key: "tasklist",
-  type: "button",
-  title: strings.taskList(),
-  icon: Icons.checkbox,
-  isChecked: editor.isActive("taskList"),
-  onClick: () => editor.chain().focus().toggleTaskList().run(),
-  modifier: keybindings.toggleTaskList.keys
-});
-
 const outlinelist = (editor: Editor): MenuItem => ({
   key: "outlinelist",
   type: "button",
@@ -400,15 +440,32 @@ const uploadImageFromURL = (editor: Editor): MenuItem => ({
 
 
 const BLOCK_MENU_ICON_COLORS: Record<string, string> = {
-  tasklist: "var(--jl-icon-list)", checklist: "var(--jl-icon-list)", outlinelist: "var(--jl-icon-alignment)",
-  hr: "var(--jl-icon-muted)", codeblock: "var(--jl-icon-code)", math: "var(--jl-icon-code)", callout: "var(--jl-icon-heading)",
-  blockquote: "var(--jl-icon-link)", image: "var(--jl-icon-media)", attachment: "var(--jl-icon-media)", embed: "var(--jl-icon-media)", table: "var(--jl-icon-code)"
+  paragraph: "var(--jl-icon-text)",
+  "expense-checklist": "var(--jl-icon-list)",
+  checklist: "var(--jl-icon-list)",
+  outlinelist: "var(--jl-icon-alignment)",
+  hr: "var(--jl-icon-muted)",
+  codeblock: "var(--jl-icon-code)",
+  math: "var(--jl-icon-code)",
+  "inline-math": "var(--jl-icon-code)",
+  callout: "var(--jl-icon-heading)",
+  blockquote: "var(--jl-icon-link)",
+  sketch: "var(--jl-icon-media)",
+  "voice-memo": "var(--jl-icon-media)",
+  image: "var(--jl-icon-media)",
+  attachment: "var(--jl-icon-media)",
+  embed: "var(--jl-icon-media)",
+  table: "var(--jl-icon-code)",
+  "upload-from-disk": "var(--jl-icon-media)",
+  camera: "var(--jl-icon-media)",
+  "upload-from-url": "var(--jl-icon-link)",
+  "import-csv": "var(--jl-icon-success)"
 };
 
 function colorizeMenuItems(items: MenuItem[]): MenuItem[] {
   return items.map((item) => {
     if (item.type !== "button") return item;
-    const color = BLOCK_MENU_ICON_COLORS[item.key] || "#4B83B8";
+    const color = BLOCK_MENU_ICON_COLORS[item.key] || "var(--jl-icon-muted)";
     return {
       ...item,
       styles: { ...item.styles, icon: { ...item.styles?.icon, color } },
