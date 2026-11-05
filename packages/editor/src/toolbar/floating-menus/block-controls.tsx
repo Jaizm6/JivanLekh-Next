@@ -32,6 +32,12 @@ type MenuPosition = {
 const BLOCK_MENU_WIDTH = 147;
 const BLOCK_MENU_GAP = 6;
 const VIEWPORT_MARGIN = 8;
+const CONTROL_BUTTON_WIDTH = 21;
+const DRAG_HANDLE_WIDTH = 22;
+const CONTROL_BUTTON_HEIGHT = 24;
+const CONTROL_GAP = 2;
+const BLOCK_GUTTER = 12;
+const BLOCK_CONTROLS_WIDTH = CONTROL_BUTTON_WIDTH + CONTROL_GAP + DRAG_HANDLE_WIDTH;
 
 function calculateMenuPosition(
   handle: HTMLElement,
@@ -256,10 +262,10 @@ const controlButtonStyle: CSSProperties = {
   color: "var(--paragraph-secondary, #777)",
   cursor: "pointer",
   display: "inline-flex",
-  height: 25,
+  height: CONTROL_BUTTON_HEIGHT,
   justifyContent: "center",
   padding: 0,
-  width: 25
+  width: CONTROL_BUTTON_WIDTH
 };
 
 const menuButtonStyle: CSSProperties = {
@@ -633,7 +639,7 @@ export function BlockControls({ editor }: { editor: Editor }) {
 
   if (!editor.isEditable || !activeBlock) return null;
 
-  const menuLeft = Math.max(8, activeBlock.left - 68);
+  const menuLeft = Math.max(VIEWPORT_MARGIN, activeBlock.left - BLOCK_CONTROLS_WIDTH - BLOCK_GUTTER);
   const menuTop = Math.max(8, activeBlock.top);
 
   return (
@@ -642,7 +648,7 @@ export function BlockControls({ editor }: { editor: Editor }) {
         className="jl-block-controls"
         style={{
           display: "flex",
-          gap: 3,
+          gap: CONTROL_GAP,
           left: menuLeft,
           position: "fixed",
           top: menuTop,
@@ -660,7 +666,7 @@ export function BlockControls({ editor }: { editor: Editor }) {
           title="Add block below"
           type="button"
         >
-          <svg aria-hidden="true" height="15" viewBox="0 0 20 20" width="15">
+          <svg aria-hidden="true" height="13" viewBox="0 0 20 20" width="13">
             <path d="M10 4v12M4 10h12" fill="none" stroke="currentColor" strokeLinecap="round" strokeWidth="1.8" />
           </svg>
         </button>
@@ -675,11 +681,11 @@ export function BlockControls({ editor }: { editor: Editor }) {
               openBlockMenu(activeBlock);
             }
           }}
-          style={{ ...controlButtonStyle, cursor: "grab", touchAction: "none", width: 27, height: 27 }}
+          style={{ ...controlButtonStyle, cursor: "grab", touchAction: "none", width: DRAG_HANDLE_WIDTH }}
           title="Drag to move; click for block actions"
           type="button"
         >
-          <svg aria-hidden="true" height="14" viewBox="0 0 16 16" width="14">
+          <svg aria-hidden="true" height="12" viewBox="0 0 16 16" width="12">
             {[5, 11].flatMap((x) =>
               [3, 8, 13].map((y) => (
                 <circle cx={x} cy={y} fill="currentColor" key={x + "-" + y} r="1" />
