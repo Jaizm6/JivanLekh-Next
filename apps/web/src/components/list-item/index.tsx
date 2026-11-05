@@ -296,20 +296,19 @@ function ListItem<TItem extends Item, TContext>(
       {!isCompact && props.body && (
         <Text
           as="p"
-          variant="subBody"
+          variant="body"
           dir="auto"
           data-test-id={`description`}
           sx={{
-            mt: "2px",
-            fontSize: "12px",
-            color: selected ? "paragraph-selected" : "paragraph-secondary",
-            lineHeight: `1.15rem`,
+            mt: "small",
+            color: selected ? "paragraph-selected" : "paragraph",
+            lineHeight: `1.2rem`,
             overflow: "hidden",
             textOverflow: "ellipsis",
             whiteSpace: "pre-wrap",
             position: "relative",
             display: "-webkit-box",
-            WebkitLineClamp: 2,
+            WebkitLineClamp: 4,
             WebkitBoxOrient: "vertical"
           }}
         >

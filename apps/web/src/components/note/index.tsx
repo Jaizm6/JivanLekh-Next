@@ -615,29 +615,10 @@ function Note(props: NoteProps) {
         useEditorStore.getState().openSession(note, { openInNewTab: true })
       }
       header={
-        <Flex
-          sx={{
-            alignItems: "center",
-            justifyContent: "space-between",
-            width: "100%",
-            mb: 1
-          }}
-        >
+        <Flex sx={{ alignItems: "center", mb: 1 }}>
           <Text variant="subBody">
             {formatDate(date, { type: "date", dateFormat })}
           </Text>
-          {note.pinned && !props.context && (
-            <Flex
-              sx={{
-                alignItems: "center",
-                flexShrink: 0,
-                color: "paragraph-secondary",
-                opacity: 0.85
-              }}
-            >
-              <Pin size={12} />
-            </Flex>
-          )}
         </Flex>
       }
       footer={
@@ -645,15 +626,14 @@ function Note(props: NoteProps) {
           sx={{
             fontSize: "subBody",
             color: "paragraph-secondary",
-            display: "flex",
+            display: compact ? "flex" : undefined,
             alignItems: "center",
-            justifyContent: compact ? "flex-end" : "space-between",
+            justifyContent: "center",
             gap: 1,
             flexWrap: compact ? "nowrap" : "wrap",
             whiteSpace: compact ? "nowrap" : undefined,
             mt: compact ? 0 : "small",
             ml: 0,
-            width: "100%",
             height: compact ? "100%" : undefined,
             minHeight: compact ? 0 : undefined,
             lineHeight: compact ? 1 : undefined,
@@ -671,153 +651,101 @@ function Note(props: NoteProps) {
             </>
           ) : (
             <>
-              <Flex
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 1,
-                  flexWrap: "wrap",
-                  flex: 1,
-                  minWidth: 0,
-                  overflow: "hidden"
-                }}
-              >
-                {note.conflicted && <Alert size={15} color="icon-error" />}
-                {note.localOnly && <SyncOff size={13} />}
-                {attachments?.total ? (
-                  <Flex sx={{ alignItems: "center", justifyContent: "center" }}>
-                    <Attachment size={13} />
-                    <Text variant="subBody" ml={"2px"}>
-                      {attachments.total}
-                    </Text>
-                  </Flex>
-                ) : null}
-                {attachments?.failed ? (
-                  <Flex title={strings.errorsInAttachments(attachments.failed)}>
-                    <AttachmentError size={13} color="var(--icon-error)" />
-                    <Text ml={"2px"}>{attachments.failed}</Text>
-                  </Flex>
-                ) : null}
-                {note.favorite && (
-                  <Star data-test-id="favorite" color={primary} size={15} />
-                )}
-                {tags?.items.map((tag) => {
-                  return (
-                    <IconTag
-                      testId={`tag-item`}
-                      key={tag.id}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (!tag.id)
-                          return showToast("error", strings.tagNotFound());
-                        appStore.get().setNavigationTab("tags");
-                        navigate(`/tags/${tag.id}`);
-                      }}
-                      text={tag.title}
-                      title={strings.goToTag(tag.title)}
-                      icon={TagIcon}
-                      styles={{
-                        container: {
-                          width: "auto !important",
-                          maxWidth: "fit-content",
-                          height: "18px",
-                          px: "6px",
-                          py: 0,
-                          borderRadius: "4px"
-                        },
-                        text: {
-                          fontSize: 10.5
-                        }
-                      }}
-                    />
-                  );
-                })}
-                {context?.type !== "notebook" &&
-                  notebooks?.items.map((notebook) => (
-                    <IconTag
-                      key={notebook.id}
-                      onClick={() => {
-                        appStore.get().setNavigationTab("notebooks");
-                        navigate(`/notebooks/${notebook.id}`);
-                      }}
-                      text={notebook.title}
-                      icon={Notebook}
-                      styles={{
-                        container: {
-                          width: "auto !important",
-                          maxWidth: "fit-content",
-                          height: "18px",
-                          px: "6px",
-                          py: 0,
-                          borderRadius: "4px"
-                        },
-                        text: {
-                          fontSize: 10.5
-                        }
-                      }}
-                    />
-                  ))}
-                {reminder && isReminderActive(reminder) ? (
-                  <IconTag
-                    icon={Reminder}
-                    text={getFormattedReminderTime(reminder, true)}
-                    title={reminder.title}
-                    styles={{
-                      container: {
-                        width: "auto !important",
-                        maxWidth: "fit-content",
-                        height: "18px",
-                        px: "6px",
-                        py: 0,
-                        borderRadius: "4px"
-                      },
-                      text: {
-                        fontSize: 10.5,
-                        ...(isReminderToday(reminder)
-                          ? { color: primary }
-                          : {})
-                      },
-                      icon: isReminderToday(reminder)
-                        ? { color: primary }
-                        : {}
-                    }}
-                  />
-                ) : null}
-                {note.expiryDate?.value && (
-                  <IconTag
-                    icon={Destruct}
-                    text={formatDate(note.expiryDate.value, {
-                      type: "date",
-                      dateFormat
-                    })}
-                    styles={{
-                      container: {
-                        width: "auto !important",
-                        maxWidth: "fit-content",
-                        height: "18px",
-                        px: "6px",
-                        py: 0,
-                        borderRadius: "4px"
-                      },
-                      text: {
-                        fontSize: 10.5
-                      }
-                    }}
-                  />
-                )}
-              </Flex>
-              {checklistProgress ? (
-                <Flex
-                  sx={{
-                    alignItems: "center",
-                    gap: 1,
-                    flexShrink: 0,
-                    ml: "auto"
-                  }}
-                >
-                  <DetailedChecklistProgress progress={checklistProgress} />
+              {note.conflicted && <Alert size={15} color="icon-error" />}
+
+              {note.localOnly && <SyncOff size={13} />}
+
+              {/* <TimeAgo
+                sx={{ flexShrink: 0 }}
+                locale="en_short"
+                live={true}
+                datetime={date}
+              /> */}
+
+              {attachments?.total ? (
+                <Flex sx={{ alignItems: "center", justifyContent: "center" }}>
+                  <Attachment size={13} />
+                  <Text variant="subBody" ml={"2px"}>
+                    {attachments.total}
+                  </Text>
                 </Flex>
               ) : null}
+
+              {attachments?.failed ? (
+                <Flex title={strings.errorsInAttachments(attachments.failed)}>
+                  <AttachmentError size={13} color="var(--icon-error)" />
+                  <Text ml={"2px"}>{attachments.failed}</Text>
+                </Flex>
+              ) : null}
+
+              {note.pinned && !props.context && <Pin size={13} />}
+
+
+
+              {note.favorite && (
+                <Star data-test-id="favorite" color={primary} size={15} />
+              )}
+
+              {tags?.items.map((tag) => {
+                return (
+                  <IconTag
+                    testId={`tag-item`}
+                    key={tag.id}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (!tag.id)
+                        return showToast("error", strings.tagNotFound());
+
+                      appStore.get().setNavigationTab("tags");
+                      navigate(`/tags/${tag.id}`);
+                    }}
+                    text={tag.title}
+                    title={strings.goToTag(tag.title)}
+                    icon={TagIcon}
+                  />
+                );
+              })}
+
+              {context?.type !== "notebook" &&
+                notebooks?.items.map((notebook) => (
+                  <IconTag
+                    key={notebook.id}
+                    onClick={() => {
+                      appStore.get().setNavigationTab("notebooks");
+                      navigate(`/notebooks/${notebook.id}`);
+                    }}
+                    text={notebook.title}
+                    icon={Notebook}
+                  />
+                ))}
+
+              {reminder && isReminderActive(reminder) ? (
+                <IconTag
+                  icon={Reminder}
+                  text={getFormattedReminderTime(reminder, true)}
+                  title={reminder.title}
+                  styles={
+                    isReminderToday(reminder)
+                      ? {
+                          icon: { color: primary },
+                          text: { color: primary }
+                        }
+                      : {}
+                  }
+                />
+              ) : null}
+
+              {note.expiryDate?.value && (
+                <IconTag
+                  icon={Destruct}
+                  text={formatDate(note.expiryDate.value, {
+                    type: "date",
+                    dateFormat
+                  })}
+                />
+              )}
+
+              <DetailedChecklistProgress progress={checklistProgress} />
             </>
           )}
         </Flex>
