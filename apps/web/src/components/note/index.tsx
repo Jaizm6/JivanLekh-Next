@@ -103,7 +103,6 @@ import {
 import { Context } from "../list-container/types";
 import ListItem from "../list-item";
 import { PublishDialog } from "../publish-view";
-import TimeAgo from "../time-ago";
 import { NoteExpiryDateDialog } from "../../dialogs/note-expiry-date-dialog";
 import { withFeatureCheck } from "../../common";
 
@@ -652,23 +651,6 @@ function Note(props: NoteProps) {
               {note.favorite && <Star color={primary} size={15} />}
               {note.expiryDate?.value ? <Destruct size={13} /> : null}
 
-              <TimeAgo
-                live={true}
-                datetime={date}
-                locale="short"
-                sx={
-                  compact
-                    ? {
-                        display: "flex",
-                        alignItems: "center",
-                        height: "100%",
-                        fontSize: "11px",
-                        lineHeight: 1,
-                        whiteSpace: "nowrap"
-                      }
-                    : undefined
-                }
-              />
             </>
           ) : (
             <>
