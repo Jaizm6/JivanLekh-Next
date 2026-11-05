@@ -40,6 +40,7 @@ function createPaletteTheme(
       if (!colors) continue;
       const isDark = theme.colorScheme === "dark";
       const variant = variantName.toLowerCase();
+      if (variant === "error" || variant === "success") continue;
       const background =
         variant === "selected" ? palette.selectedBackground :
         variant === "disabled" ? palette.secondaryBackground :
