@@ -85,6 +85,95 @@ export type StorageDestination = {
   enabled: boolean;
 };
 
+/**
+ * Serializable destination configuration. "providerId" is intentionally an
+ * open string so third-party/custom adapters can be registered without
+ * changing the core package. credentialRef points to an OS-secure credential
+ * entry; access tokens and passwords must never be stored here.
+ */
+export type StorageDestinationConfig = {
+  id: string;
+  providerId: string;
+  label: string;
+  root: string;
+  enabled: boolean;
+  credentialRef?: string;
+};
+
+/**
+ * Server sync is optional. Provider sync can replicate to multiple selected
+ * destinations; backup destinations are independently multi-selectable.
+ */
+export type UserStorageConfiguration = {
+  syncMode: "off" | "server" | "providers";
+  syncDestinationIds: string[];
+  backupDestinationIds: string[];
+  destinations: StorageDestinationConfig[];
+};
+
+export function validateUserStorageConfiguration(
+  configuration: UserStorageConfiguration
+): string[] {
+  const errors: string[] = [];
+  const ids = new Set<string>();
+
+  for (const destination of configuration.destinations) {
+    if (!destination.id.trim()) {
+      errors.push("Every storage destination needs an ID.");
+      continue;
+    }
+    if (ids.has(destination.id)) {
+      errors.push(`Duplicate storage destination ID: ${destination.id}`);
+    }
+    ids.add(destination.id);
+    if (!destination.providerId.trim()) {
+      errors.push(`Storage destination "${destination.id}" has no provider.`);
+    }
+    if (destination.credentialRef?.trim() === "") {
+      errors.push(`Storage destination "${destination.id}" has an empty credential reference.`);
+    }
+  }
+
+  const enabledIds = new Set(
+    configuration.destinations
+      .filter((destination) => destination.enabled)
+      .map((destination) => destination.id)
+  );
+
+  for (const id of configuration.backupDestinationIds) {
+    if (!enabledIds.has(id)) {
+      errors.push(`Backup destination "${id}" is missing or disabled.`);
+    }
+  }
+
+  for (const id of configuration.syncDestinationIds) {
+    if (!enabledIds.has(id)) {
+      errors.push(`Sync destination "${id}" is missing or disabled.`);
+    }
+  }
+
+  if (new Set(configuration.backupDestinationIds).size !== configuration.backupDestinationIds.length) {
+    errors.push("Backup destination selections must not contain duplicates.");
+  }
+  if (new Set(configuration.syncDestinationIds).size !== configuration.syncDestinationIds.length) {
+    errors.push("Sync destination selections must not contain duplicates.");
+  }
+  if (
+    configuration.syncMode === "providers" &&
+    configuration.syncDestinationIds.length === 0
+  ) {
+    errors.push("Select at least one provider destination or choose another sync mode.");
+  }
+  if (
+    configuration.syncMode !== "providers" &&
+    configuration.syncDestinationIds.length > 0
+  ) {
+    errors.push("Provider sync destinations can only be selected when provider sync is enabled.");
+  }
+
+  return errors;
+}
+
 export type ImmutableSnapshot = {
   /** Globally unique path, normally containing a timestamp and random ID. */
   key: string;
