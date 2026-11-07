@@ -24,6 +24,7 @@ import {
   publishProviderManifest,
   ProviderObjectStorage,
   StorageDestination,
+  validateUserStorageConfiguration,
   writeSnapshotToDestinations
 } from "./index.js";
 
