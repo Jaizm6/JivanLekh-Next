@@ -129,7 +129,7 @@ export function validateUserStorageConfiguration(
     if (!destination.providerId.trim()) {
       errors.push(`Storage destination "${destination.id}" has no provider.`);
     }
-    if (destination.credentialRef?.trim() === "") {
+    if (destination.credentialRef !== undefined && !destination.credentialRef.trim()) {
       errors.push(`Storage destination "${destination.id}" has an empty credential reference.`);
     }
   }
@@ -152,23 +152,33 @@ export function validateUserStorageConfiguration(
     }
   }
 
-  if (new Set(configuration.backupDestinationIds).size !== configuration.backupDestinationIds.length) {
+  if (
+    new Set(configuration.backupDestinationIds).size !==
+    configuration.backupDestinationIds.length
+  ) {
     errors.push("Backup destination selections must not contain duplicates.");
   }
-  if (new Set(configuration.syncDestinationIds).size !== configuration.syncDestinationIds.length) {
+  if (
+    new Set(configuration.syncDestinationIds).size !==
+    configuration.syncDestinationIds.length
+  ) {
     errors.push("Sync destination selections must not contain duplicates.");
   }
   if (
     configuration.syncMode === "providers" &&
     configuration.syncDestinationIds.length === 0
   ) {
-    errors.push("Select at least one provider destination or choose another sync mode.");
+    errors.push(
+      "Select at least one provider destination or choose another sync mode."
+    );
   }
   if (
     configuration.syncMode !== "providers" &&
     configuration.syncDestinationIds.length > 0
   ) {
-    errors.push("Provider sync destinations can only be selected when provider sync is enabled.");
+    errors.push(
+      "Provider sync destinations can only be selected when provider sync is enabled."
+    );
   }
 
   return errors;
@@ -248,7 +258,7 @@ export async function writeSnapshotToDestinations(
 
   for (const destination of destinations) {
     if (!destination.id.trim() || ids.has(destination.id)) {
-      throw new Error("Enabled storage destination IDs must be unique and non-empty.");
+      throw new Error("Storage destination IDs must be unique and non-empty.");
     }
     ids.add(destination.id);
   }
@@ -271,14 +281,23 @@ export async function writeSnapshotToDestinations(
       try {
         const written = await destination.provider.put(remoteKey, snapshot.data, {
           contentType: snapshot.contentType,
-          // Snapshots are immutable. Never silently replace an existing copy.
-          condition: { ifNoneMatch: true }
+          // Use an atomic create-only write whenever the provider supports it.
+          // Providers without conditional writes rely on globally unique snapshot keys.
+          condition: destination.provider.capabilities.conditionalWrites
+            ? { ifNoneMatch: true }
+            : undefined
         });
         const verified = await destination.provider.head(remoteKey);
         if (!verified || verified.size !== snapshot.data.byteLength) {
-          throw new Error("Remote verification failed: stored size does not match.");
+          throw new Error(
+            "Remote verification failed: stored size does not match."
+          );
         }
-        if (snapshot.sha256 && verified.sha256 && snapshot.sha256 !== verified.sha256) {
+        if (
+          snapshot.sha256 &&
+          verified.sha256 &&
+          snapshot.sha256 !== verified.sha256
+        ) {
           throw new Error("Remote verification failed: SHA-256 does not match.");
         }
         return {
