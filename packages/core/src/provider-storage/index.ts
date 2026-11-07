@@ -364,6 +364,36 @@ export async function writeSnapshotToDestinations(
   };
 }
 
+/**
+ * Runtime registry for built-in and custom adapters. Platform apps construct
+ * adapters with credentials obtained from their secure storage layer, then
+ * register them here. Registration never persists credentials.
+ */
+export class ProviderRegistry {
+  private readonly providers = new Map<string, ProviderObjectStorage>();
+
+  register(provider: ProviderObjectStorage) {
+    const id = provider.id.trim();
+    if (!id) throw new Error("Storage provider ID is required.");
+    if (this.providers.has(id)) {
+      throw new Error(`Storage provider "${id}" is already registered.`);
+    }
+    this.providers.set(id, provider);
+  }
+
+  get(id: string) {
+    return this.providers.get(id);
+  }
+
+  list() {
+    return [...this.providers.values()];
+  }
+
+  unregister(id: string) {
+    return this.providers.delete(id);
+  }
+}
+
 export type ProviderManifest<T> = {
   schemaVersion: 1;
   revision: number;
