@@ -157,7 +157,7 @@ export async function writeSnapshotToDestinations(
   const enabled = destinations.filter((destination) => destination.enabled);
   const ids = new Set<string>();
 
-  for (const destination of enabled) {
+  for (const destination of destinations) {
     if (!destination.id.trim() || ids.has(destination.id)) {
       throw new Error("Enabled storage destination IDs must be unique and non-empty.");
     }
@@ -169,7 +169,15 @@ export async function writeSnapshotToDestinations(
   }
 
   const results = await Promise.all(
-    enabled.map(async (destination): Promise<DestinationWriteResult> => {
+    destinations.map(async (destination): Promise<DestinationWriteResult> => {
+      if (!destination.enabled) {
+        return {
+          destinationId: destination.id,
+          label: destination.label,
+          providerId: destination.provider.id,
+          status: "skipped"
+        };
+      }
       const remoteKey = destinationKey(destination, key);
       try {
         const written = await destination.provider.put(remoteKey, snapshot.data, {
@@ -214,7 +222,7 @@ export async function writeSnapshotToDestinations(
     failed,
     skipped,
     results,
-    complete: failed === 0 && skipped === 0 && saved === destinations.length
+    complete: enabled.length > 0 && failed === 0 && saved === enabled.length
   };
 }
 
