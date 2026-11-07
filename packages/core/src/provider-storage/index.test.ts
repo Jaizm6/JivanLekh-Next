@@ -24,6 +24,7 @@ import {
   publishProviderManifest,
   ProviderObjectStorage,
   ProviderPreconditionError,
+  ProviderRegistry,
   StorageDestination,
   validateUserStorageConfiguration,
   writeSnapshotToDestinations
