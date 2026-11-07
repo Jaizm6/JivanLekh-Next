@@ -23,6 +23,7 @@ import {
   normalizeObjectKey,
   publishProviderManifest,
   ProviderObjectStorage,
+  ProviderPreconditionError,
   StorageDestination,
   validateUserStorageConfiguration,
   writeSnapshotToDestinations
@@ -65,6 +66,9 @@ function mockProvider(
     }),
     put: vi.fn(async (key: string, data: Uint8Array) => {
       if (options.fail) throw new Error("Provider unavailable");
+      if (options.rejectExisting && objects.has(key)) {
+        throw new ProviderPreconditionError("Object already exists");
+      }
       objects.set(key, data);
       return {
         key,
