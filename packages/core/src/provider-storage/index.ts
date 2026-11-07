@@ -211,7 +211,7 @@ export class ProviderPreconditionError extends Error {
 }
 
 export function normalizeObjectKey(key: string): string {
-  const normalized = key.replace(/\\/g, "/").replace(/^\/+|\/+$/g, "");
+  const normalized = key.replace(/\\/g, "/").replace(/\/+/g, "/").replace(/^\/+|\/+$/g, "");
   const segments = normalized.split("/");
   if (
     !normalized ||
