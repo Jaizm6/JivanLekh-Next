@@ -241,6 +241,14 @@ function destinationKey(destination: StorageDestination, key: string) {
   return root ? `${root}/${child}` : child;
 }
 
+function equalBytes(left: Uint8Array, right: Uint8Array) {
+  if (left.byteLength !== right.byteLength) return false;
+  for (let index = 0; index < left.byteLength; index++) {
+    if (left[index] !== right[index]) return false;
+  }
+  return true;
+}
+
 /**
  * Writes one immutable snapshot to every enabled destination. Destinations
  * are attempted independently: a failure in one cloud must not prevent other
@@ -279,14 +287,36 @@ export async function writeSnapshotToDestinations(
       }
       const remoteKey = destinationKey(destination, key);
       try {
-        const written = await destination.provider.put(remoteKey, snapshot.data, {
-          contentType: snapshot.contentType,
-          // Use an atomic create-only write whenever the provider supports it.
-          // Providers without conditional writes rely on globally unique snapshot keys.
-          condition: destination.provider.capabilities.conditionalWrites
-            ? { ifNoneMatch: true }
-            : undefined
-        });
+        let written: ProviderObjectMetadata;
+        try {
+          written = await destination.provider.put(remoteKey, snapshot.data, {
+            contentType: snapshot.contentType,
+            // Use an atomic create-only write whenever the provider supports it.
+            // Providers without conditional writes rely on globally unique snapshot keys.
+            condition: destination.provider.capabilities.conditionalWrites
+              ? { ifNoneMatch: true }
+              : undefined
+          });
+        } catch (writeError) {
+          // A timeout can happen after the provider has accepted the upload.
+          // Treat an identical existing object as a successful retry, but
+          // never replace an object with different contents.
+          try {
+            const existing = await destination.provider.head(remoteKey);
+            if (existing && existing.size === snapshot.data.byteLength) {
+              const existingData = await destination.provider.get(remoteKey);
+              if (existingData && equalBytes(existingData, snapshot.data)) {
+                written = existing;
+              } else {
+                throw writeError;
+              }
+            } else {
+              throw writeError;
+            }
+          } catch {
+            throw writeError;
+          }
+        }
         const verified = await destination.provider.head(remoteKey);
         if (!verified || verified.size !== snapshot.data.byteLength) {
           throw new Error(
