@@ -32,7 +32,7 @@ import {
 
 function mockProvider(
   id: string,
-  options: { fail?: boolean } = {}
+  options: { fail?: boolean; rejectExisting?: boolean } = {}
 ): ProviderObjectStorage {
   const objects = new Map<string, Uint8Array>();
   return {
@@ -93,6 +93,22 @@ function destination(
 }
 
 describe("provider storage", () => {
+  it("registers built-in and custom provider adapters", () => {
+    const registry = new ProviderRegistry();
+    const provider = mockProvider("custom-drive");
+
+    registry.register(provider);
+
+    expect(registry.get("custom-drive")).toBe(provider);
+    expect(registry.list()).toEqual([provider]);
+    expect(() => registry.register(provider)).toThrow(
+      'Storage provider "custom-drive" is already registered.'
+    );
+    expect(registry.unregister("custom-drive")).toBe(true);
+    expect(registry.get("custom-drive")).toBeUndefined();
+  });
+
+
   it("normalizes safe object keys and rejects traversal", () => {
     expect(normalizeObjectKey("/backups//daily.zip/")).toBe(
       "backups/daily.zip"
@@ -127,6 +143,24 @@ describe("provider storage", () => {
       expect.objectContaining({ condition: { ifNoneMatch: true } })
     );
     expect(webdav.put).toHaveBeenCalledTimes(1);
+  });
+
+  it("treats an identical already-uploaded snapshot as a successful retry", async () => {
+    const provider = mockProvider("onedrive", { rejectExisting: true });
+    const target = destination("onedrive-main", provider);
+    const snapshot = {
+      key: "backups/retry.nnbackupz",
+      data: new Uint8Array([7, 8, 9]),
+      contentType: "application/zip"
+    };
+
+    const first = await writeSnapshotToDestinations(snapshot, [target]);
+    const retry = await writeSnapshotToDestinations(snapshot, [target]);
+
+    expect(first.complete).toBe(true);
+    expect(retry.complete).toBe(true);
+    expect(retry.saved).toBe(1);
+    expect(provider.put).toHaveBeenCalledTimes(2);
   });
 
   it("continues to other destinations when one provider fails", async () => {
