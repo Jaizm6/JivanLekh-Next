@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 export * from "./types.js";
 export * from "./interfaces.js";
+export * from "./provider-storage/index.js";
 export * from "./utils/index.js";
 export * from "./content-types/index.js";
 export * from "./common.js";
